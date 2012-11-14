@@ -611,7 +611,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self drawBoundingRangeAsSelection:self.selectedRange cornerRadius:0.0f];
     [[EGOTextView spellingSelectionColor] setFill];
     [self drawBoundingRangeAsSelection:self.correctionRange cornerRadius:2.0f];
-
+    
 }
 
 - (NSInteger)closestWhiteSpaceIndexToPoint:(CGPoint)point {
@@ -1055,7 +1055,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 + (UIColor*)selectionColor {
     static UIColor *color = nil;
     if (color == nil) {
-	color = [UIColor colorWithRed:0.f green:0.35f blue:0.65f alpha:0.2f];
+        color = [UIColor colorWithRed:0.f green:0.35f blue:0.65f alpha:0.2f];
     }    
     return color;
 }
@@ -1071,7 +1071,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 + (UIColor*)spellingSelectionColor {
     static UIColor *color = nil;
     if (color == nil) {
-	color = [UIColor colorWithRed:1.f green:0.f blue:0.f alpha:0.149f];
+        color = [UIColor colorWithRed:1.f green:0.f blue:0.f alpha:0.149f];
     }
     return color;
 }
@@ -1795,7 +1795,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
         
         if (gesture.state == UIGestureRecognizerStateEnded) {
-            self.correctionRange = NSMakeRange(NSNotFound, 0);
+            if (self.correctionRange.location != NSNotFound && self.correctionRange.length > 0) {
+                [self insertCorrectionAttributesForRange:self.correctionRange];
+                self.correctionRange = NSMakeRange(NSNotFound, 0);
+            }
           
             if (self.selectedRange.location!=NSNotFound /*&& self.selectedRange.length>0*/) {
                 [self showMenu];
@@ -1835,7 +1838,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showMenu) object:nil];
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showCorrectionMenu) object:nil];
     
-    self.correctionRange = NSMakeRange(NSNotFound, 0);
+    if (self.correctionRange.location != NSNotFound && self.correctionRange.length > 0) {
+        [self insertCorrectionAttributesForRange:self.correctionRange];
+        self.correctionRange = NSMakeRange(NSNotFound, 0);
+    }
+    
     if (self.selectedRange.length>0) {
         self.selectedRange = NSMakeRange(_selectedRange.location, 0);
     }
