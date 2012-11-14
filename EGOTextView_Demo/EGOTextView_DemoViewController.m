@@ -8,6 +8,7 @@
 
 #import "EGOTextView_DemoViewController.h"
 #import "EGOTextView.h"
+#import "LSOTextView.h"
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -41,12 +42,13 @@
     
     if (_egoTextView==nil) {
         
-        EGOTextView *view = [[EGOTextView alloc] initWithFrame:self.view.bounds];
+        LSOTextView *view = [[LSOTextView alloc] initWithFrame:self.view.bounds];
         view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         view.delegate = (id<EGOTextViewDelegate>)self;
         [self.view addSubview:view];
         self.egoTextView = view;
-        [view release];  
+        self.egoTextView.text = @"Sheeeiiit it's attributed!";
+        [view release];
         [view becomeFirstResponder];
         
     }

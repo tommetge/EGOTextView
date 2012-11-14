@@ -29,6 +29,7 @@
 		03FF5EFB135CA6AC00268656 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFA135CA6AC00268656 /* QuartzCore.framework */; };
 		03FF5EFD135CA6B200268656 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFC135CA6B200268656 /* CoreText.framework */; };
 		8BC382981653269900E426DB /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BC382971653269900E426DB /* MobileCoreServices.framework */; };
+		8BC3829B1653273D00E426DB /* LSOTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BC3829A1653273D00E426DB /* LSOTextView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,6 +61,8 @@
 		03FF5EFA135CA6AC00268656 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		03FF5EFC135CA6B200268656 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		8BC382971653269900E426DB /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		8BC3829A1653273D00E426DB /* LSOTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSOTextView.m; sourceTree = "<group>"; };
+		8BC3829C165327A000E426DB /* LSOTextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LSOTextView.h; path = EGOTextView/LSOTextView.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +166,8 @@
 			isa = PBXGroup;
 			children = (
 				03CDA261135DF850003B567F /* Resources */,
+				8BC3829C165327A000E426DB /* LSOTextView.h */,
+				8BC3829A1653273D00E426DB /* LSOTextView.m */,
 				03FF5EEC135CA4DA00268656 /* EGOTextView.h */,
 				03FF5EED135CA4DA00268656 /* EGOTextView.m */,
 			);
@@ -245,6 +250,7 @@
 				03FF5EDC135CA49D00268656 /* EGOTextView_DemoAppDelegate.m in Sources */,
 				03FF5EE2135CA49E00268656 /* EGOTextView_DemoViewController.m in Sources */,
 				03FF5EEE135CA4DA00268656 /* EGOTextView.m in Sources */,
+				8BC3829B1653273D00E426DB /* LSOTextView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
