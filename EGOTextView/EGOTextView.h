@@ -49,6 +49,13 @@ extern NSString * const EGOTextAttachmentPlaceholderString;
 
 @end
 
+@protocol EGOTextViewDrawDelegate
+
+- (void)egoTextView:(EGOTextView*)textView drawBeforeGlyphRun:(CTRunRef)glyphRun forLine:(CTLineRef)line withOrigin:(CGPoint)origin inContext:(CGContextRef)context;
+- (void)egoTextView:(EGOTextView*)textView drawAfterGlyphRun:(CTRunRef)glyphRun forLine:(CTLineRef)line withOrigin:(CGPoint)origin inContext:(CGContextRef)context;
+
+@end
+
 @protocol EGOTextAttachmentCell <NSObject>
 @optional
 
@@ -113,6 +120,7 @@ extern NSString * const EGOTextAttachmentPlaceholderString;
 @property(nonatomic) BOOL enablesReturnKeyAutomatically; 
 
 @property(nonatomic,assign) id <EGOTextViewDelegate> delegate;
+@property(nonatomic,assign) id <EGOTextViewDrawDelegate> drawDelegate;
 @property(nonatomic,copy) NSAttributedString *attributedString;
 @property(nonatomic,copy) NSString *text;
 @property(nonatomic,retain) UIFont *font; // ignored when attributedString is not nil

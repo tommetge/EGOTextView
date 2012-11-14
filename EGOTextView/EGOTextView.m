@@ -192,6 +192,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 @implementation EGOTextView
 
 @synthesize delegate;
+@synthesize drawDelegate;
 @synthesize attributedString=_attributedString;
 @synthesize text=_text;
 @synthesize font=_font;
@@ -580,7 +581,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self drawBoundingRangeAsSelection:self.selectedRange cornerRadius:0.0f];
     [[EGOTextView spellingSelectionColor] setFill];
     [self drawBoundingRangeAsSelection:self.correctionRange cornerRadius:2.0f];
-        
+    
     CGPathRef framePath = CTFrameGetPath(_frame);
     CGRect frameRect = CGPathGetBoundingBox(framePath);
         
@@ -588,17 +589,30 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSInteger count = [lines count];
 
     CGPoint *origins = (CGPoint*)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);    
+    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
 	CGContextRef ctx = UIGraphicsGetCurrentContext();
 	for (int i = 0; i < count; i++) {
         CTLineRef line = (CTLineRef)CFArrayGetValueAtIndex((CFArrayRef)lines, i);
+        CFArrayRef runs = CTLineGetGlyphRuns(line);
+        CFIndex runsCount = CFArrayGetCount(runs);
+        
+        if (self.drawDelegate) {
+            for (CFIndex runsIndex = 0; runsIndex < runsCount; runsIndex++) {
+                CTRunRef run = CFArrayGetValueAtIndex(runs, runsIndex);
+                [self.drawDelegate egoTextView:self drawBeforeGlyphRun:run forLine:line withOrigin:origins[i] inContext:ctx];
+            }
+        }
+        
         CGContextSetTextPosition(ctx, frameRect.origin.x + origins[i].x, frameRect.origin.y + origins[i].y);
         CTLineDraw(line, ctx);
         
-        CFArrayRef runs = CTLineGetGlyphRuns(line);
-        CFIndex runsCount = CFArrayGetCount(runs);
         for (CFIndex runsIndex = 0; runsIndex < runsCount; runsIndex++) {
             CTRunRef run = CFArrayGetValueAtIndex(runs, runsIndex);
+            
+            if (self.drawDelegate) {
+                [self.drawDelegate egoTextView:self drawAfterGlyphRun:run forLine:line withOrigin:origins[i] inContext:ctx];
+            }
+            
             CFDictionaryRef attributes = CTRunGetAttributes(run);
             id <EGOTextAttachmentCell> attachmentCell = [(id)attributes objectForKey: EGOTextAttachmentAttributeName];
             if (attachmentCell != nil && [attachmentCell respondsToSelector: @selector(attachmentSize)] && [attachmentCell respondsToSelector: @selector(attachmentDrawInRect:)]) {
@@ -1806,7 +1820,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
         
         if (gesture.state == UIGestureRecognizerStateEnded) {
-            if (self.selectedRange.location!=NSNotFound && self.selectedRange.length>0) {
+            if (self.selectedRange.location!=NSNotFound /*&& self.selectedRange.length>0*/) {
                 [self showMenu];
             }
         }
