@@ -1566,7 +1566,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             };
             
             // the retain here is balanced by the release in the Dealloc function
-            CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, CFBridgingRetain(value));
+	    CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, (__bridge void *)((__bridge id)CFBridgingRetain(value)));
             [mutableAttributedString addAttribute: (NSString *)kCTRunDelegateAttributeName value: (__bridge id)runDelegate range:range];
             CFRelease(runDelegate);
         }
