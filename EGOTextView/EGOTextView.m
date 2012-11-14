@@ -1820,6 +1820,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
         
         if (gesture.state == UIGestureRecognizerStateEnded) {
+            self.correctionRange = NSMakeRange(NSNotFound, 0);
+          
             if (self.selectedRange.location!=NSNotFound /*&& self.selectedRange.length>0*/) {
                 [self showMenu];
             }
