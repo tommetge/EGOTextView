@@ -210,6 +210,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 @synthesize returnKeyType;
 @synthesize enablesReturnKeyAutomatically;
 
+- (UITextAutocorrectionType)autocorrectionType
+{
+    return UITextAutocorrectionTypeNo; // For now, until autocorrection is draw correctly
+}
 
 - (void)commonInit {
     [self setText:@""];
@@ -236,6 +240,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self addGestureRecognizer:doubleTap];
     
     UITapGestureRecognizer *singleTap =  [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tap:)];
+    singleTap.delegate = (id<UIGestureRecognizerDelegate>)self;
     [self addGestureRecognizer:singleTap];
 }
 
@@ -893,7 +898,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             CGFloat ascent, descent;
             CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
             
-            returnRect = [_textContentView convertRect:CGRectMake(origin.x + xStart, origin.y - descent, xEnd - xStart, ascent + (descent*2)) toView:self];
+            returnRect = [_textContentView convertRect:CGRectMake(origin.x + xStart - 7.f, origin.y - descent, xEnd - xStart, ascent + (descent*2)) toView:self];
             break;
         }
     }
@@ -1123,7 +1128,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)setMarkedText:(NSString *)markedText selectedRange:(NSRange)selectedRange {
-        
+    
     NSRange selectedNSRange = self.selectedRange;
     NSRange markedTextRange = self.markedRange;
     
@@ -1566,7 +1571,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             };
             
             // the retain here is balanced by the release in the Dealloc function
-	    CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, (__bridge void *)((__bridge id)CFBridgingRetain(value)));
+            CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, (__bridge void *)((__bridge id)CFBridgingRetain(value)));
             [mutableAttributedString addAttribute: (NSString *)kCTRunDelegateAttributeName value: (__bridge id)runDelegate range:range];
             CFRelease(runDelegate);
         }
@@ -1621,7 +1626,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)checkSpellingForRange:(NSRange)range {
     
     [_mutableAttributedString setAttributedString:self.attributedString];
-        
+    
     NSInteger location = range.location-1;
     NSInteger currentOffset = MAX(0, location);
     NSRange currentRange;
@@ -1912,6 +1917,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     return YES;
     
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    return (touch.view == self);
 }
 
 
@@ -2349,7 +2359,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    [self.delegate textChanged]; // reset layout on frame / orientation change
+//    [self.delegate textChanged]; // reset layout on frame / orientation change
     
 }
 
