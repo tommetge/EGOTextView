@@ -750,8 +750,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             
             [_attributedString.string enumerateSubstringsInRange:range options:NSStringEnumerationByWords usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
                 
+                returnRange = subStringRange;
                 if (theIndex - subStringRange.location <= subStringRange.length) {
-                    returnRange = subStringRange;
+//                    returnRange = subStringRange;
                     *stop = YES;
                 }
                 
