@@ -556,13 +556,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)drawContentInRect:(CGRect)rect {    
-
-    [[UIColor colorWithRed:0.8f green:0.8f blue:0.8f alpha:1.0f] setFill];
-    [self drawBoundingRangeAsSelection:_linkRange cornerRadius:2.0f];
-    [[EGOTextView selectionColor] setFill];
-    [self drawBoundingRangeAsSelection:self.selectedRange cornerRadius:0.0f];
-    [[EGOTextView spellingSelectionColor] setFill];
-    [self drawBoundingRangeAsSelection:self.correctionRange cornerRadius:2.0f];
     
     CGPathRef framePath = CTFrameGetPath(_frame);
     CGRect frameRect = CGPathGetBoundingBox(framePath);
@@ -612,6 +605,13 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	}
     free(origins);
     
+    [[UIColor colorWithRed:0.8f green:0.8f blue:0.8f alpha:1.0f] setFill];
+    [self drawBoundingRangeAsSelection:_linkRange cornerRadius:2.0f];
+    [[EGOTextView selectionColor] setFill];
+    [self drawBoundingRangeAsSelection:self.selectedRange cornerRadius:0.0f];
+    [[EGOTextView spellingSelectionColor] setFill];
+    [self drawBoundingRangeAsSelection:self.correctionRange cornerRadius:2.0f];
+
 }
 
 - (NSInteger)closestWhiteSpaceIndexToPoint:(CGPoint)point {
@@ -1055,7 +1055,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 + (UIColor*)selectionColor {
     static UIColor *color = nil;
     if (color == nil) {
-        color = [UIColor colorWithRed:0.800f green:0.867f blue:0.929f alpha:1.0f];    
+	color = [UIColor colorWithRed:0.f green:0.35f blue:0.65f alpha:0.2f];
     }    
     return color;
 }
@@ -1071,7 +1071,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 + (UIColor*)spellingSelectionColor {
     static UIColor *color = nil;
     if (color == nil) {
-        color = [UIColor colorWithRed:1.000f green:0.851f blue:0.851f alpha:1.0f];
+	color = [UIColor colorWithRed:1.f green:0.f blue:0.f alpha:0.149f];
     }
     return color;
 }
