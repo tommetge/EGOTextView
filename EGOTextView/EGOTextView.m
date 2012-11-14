@@ -25,6 +25,7 @@
 
 #import "EGOTextView.h"
 #import <QuartzCore/QuartzCore.h>
+#import <MobileCoreServices/UTCoreTypes.h>
 
 NSString * const EGOTextAttachmentAttributeName = @"com.enormego.EGOTextAttachmentAttribute";
 NSString * const EGOTextAttachmentPlaceholderString = @"\uFFFC";
@@ -2164,7 +2165,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     } else if ((action == @selector(select:) || action == @selector(selectAll:))) {
         return (_selectedRange.length==0 && [self hasText]);
     } else if (action == @selector(paste:)) {
-        return (_editing && [[UIPasteboard generalPasteboard] containsPasteboardTypes:[NSArray arrayWithObject:@"public.utf8-plain-text"]]);
+        return (_editing && [[UIPasteboard generalPasteboard] containsPasteboardTypes:[NSArray arrayWithObject:(NSString*)kUTTypeUTF8PlainText]]);
     } else if (action == @selector(delete:)) {
         return NO;
     }
@@ -2212,7 +2213,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)paste:(id)sender {
     
-    NSString *pasteText = [[UIPasteboard generalPasteboard] valueForPasteboardType:@"public.utf8-plain-text"];
+    NSString *pasteText = [[UIPasteboard generalPasteboard] valueForPasteboardType:(NSString*)kUTTypeUTF8PlainText];
     
     if (pasteText!=nil) {
         [self insertText:pasteText];
@@ -2242,7 +2243,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)cut:(id)sender {
     
     NSString *string = [_attributedString.string substringWithRange:_selectedRange];
-    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:@"public.utf8-plain-text"];
+    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:(NSString*)kUTTypeUTF8PlainText];
     
     [_mutableAttributedString setAttributedString:self.attributedString];
     [_mutableAttributedString deleteCharactersInRange:_selectedRange];
@@ -2258,7 +2259,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)copy:(id)sender {
     
     NSString *string = [self.attributedString.string substringWithRange:_selectedRange];
-    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:@"public.utf8-plain-text"];
+    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:(NSString*)kUTTypeUTF8PlainText];
     
 }
 
