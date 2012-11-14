@@ -52,26 +52,26 @@ NSString * const kLSOTaggedObjectNameAttributeName = @"LSOTaggedObjectNameAttrib
 
 - (void)egoTextView:(EGOTextView *)textView drawBeforeGlyphRun:(CTRunRef)glyphRun forLine:(CTLineRef)line withOrigin:(CGPoint)origin inContext:(CGContextRef)context
 {
-    return;
+//    return;
 //    NSDictionary *attributes = (NSDictionary *)CTRunGetAttributes(glyphRun);
     CGRect runBounds = CGRectZero;
     CGFloat ascent = 0.0f;
     CGFloat descent = 0.0f;
     
     runBounds = CTRunGetImageBounds(glyphRun, context, CFRangeMake(0, 0));
-//    NSLog(@"%@", NSStringFromCGRect(runBounds));
-//    CGFloat y = textView.bounds.origin.y + textView.bounds.size.height - origin.y;
-//    runBounds.origin.y = y-runBounds.size.height-runBounds.origin.y;
-    
-//    CGRect rect = CGRectInset(CGRectInset(runBounds, -1.0f, -3.0f), lineWidth, lineWidth);
-    
+  
+    runBounds.size.width = CTRunGetTypographicBounds(glyphRun, CFRangeMake(0, 0), &ascent, &descent, NULL);
+    CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
+    runBounds.size.height = ascent + descent;
+  
     CGFloat xOffset = CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(glyphRun).location, NULL);
     runBounds.origin.x = origin.x + textView.bounds.origin.x + xOffset;
     runBounds.origin.y = origin.y + textView.bounds.origin.y;
     runBounds.origin.y -= descent;
-//    NSLog(@"%@", NSStringFromCGRect(runBounds));
+  
+    runBounds = CGRectInset(CGRectInset(runBounds, -1.0f, -3.0f), 0.f, 0.f);
     
-    CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:runBounds cornerRadius:2.f] CGPath];
+    CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:runBounds cornerRadius:5.f] CGPath];
     
     CGContextSetLineJoin(context, kCGLineJoinRound);
     
@@ -84,6 +84,7 @@ NSString * const kLSOTaggedObjectNameAttributeName = @"LSOTaggedObjectNameAttrib
     }
     
     runBounds.size.width = CTRunGetTypographicBounds(glyphRun, CFRangeMake(0, 0), &ascent, &descent, NULL);
+    
     runBounds.size.height = ascent + descent;
     
     
