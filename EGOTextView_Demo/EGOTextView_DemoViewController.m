@@ -8,14 +8,10 @@
 
 #import "EGOTextView_DemoViewController.h"
 #import "EGOTextView.h"
-#import "LSOTextView.h"
 
 #import <QuartzCore/QuartzCore.h>
 
 @implementation EGOTextView_DemoViewController
-
-@synthesize egoTextView=_egoTextView;
-@synthesize textView=_textView;
 
 #pragma mark -
 #pragma mark - View lifecycle
@@ -28,7 +24,7 @@
     [segment addTarget:self action:@selector(segmentChanged:) forControlEvents:UIControlEventValueChanged];
     self.navigationItem.titleView = segment;
     
-    if (_textView==nil) {
+    if (!_textView) {
         
         UITextView *textView = [[UITextView alloc] initWithFrame:self.view.bounds];
         textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -38,9 +34,9 @@
         
     }
     
-    if (_egoTextView==nil) {
+    if (!_egoTextView) {
         
-        LSOTextView *view = [[LSOTextView alloc] initWithFrame:self.view.bounds];
+        EGOTextView *view = [[EGOTextView alloc] initWithFrame:self.view.bounds];
         view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         view.delegate = (id<EGOTextViewDelegate>)self;
         [self.view addSubview:view];

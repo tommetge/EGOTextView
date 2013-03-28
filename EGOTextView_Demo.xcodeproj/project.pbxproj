@@ -13,9 +13,6 @@
 		03644E9413611C720015EC74 /* magnifier-ranged-lo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03644E9013611C720015EC74 /* magnifier-ranged-lo@2x.png */; };
 		03644E9513611C720015EC74 /* magnifier-ranged-mask@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03644E9113611C720015EC74 /* magnifier-ranged-mask@2x.png */; };
 		03C94662135E90E000EF024B /* drag-dot@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03C94661135E90E000EF024B /* drag-dot@2x.png */; };
-		03CDA265135DF850003B567F /* loupe-hi@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03CDA262135DF850003B567F /* loupe-hi@2x.png */; };
-		03CDA266135DF850003B567F /* loupe-lo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03CDA263135DF850003B567F /* loupe-lo@2x.png */; };
-		03CDA267135DF850003B567F /* loupe-mask@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 03CDA264135DF850003B567F /* loupe-mask@2x.png */; };
 		03FF5ECC135CA49D00268656 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5ECB135CA49D00268656 /* UIKit.framework */; };
 		03FF5ECE135CA49D00268656 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5ECD135CA49D00268656 /* Foundation.framework */; };
 		03FF5ED0135CA49D00268656 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5ECF135CA49D00268656 /* CoreGraphics.framework */; };
@@ -28,8 +25,18 @@
 		03FF5EEE135CA4DA00268656 /* EGOTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 03FF5EED135CA4DA00268656 /* EGOTextView.m */; };
 		03FF5EFB135CA6AC00268656 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFA135CA6AC00268656 /* QuartzCore.framework */; };
 		03FF5EFD135CA6B200268656 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFC135CA6B200268656 /* CoreText.framework */; };
+		189464591704A44500B8A785 /* EGOCaretView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464481704A44500B8A785 /* EGOCaretView.m */; };
+		1894645A1704A44500B8A785 /* EGOContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644A1704A44500B8A785 /* EGOContentView.m */; };
+		1894645B1704A44500B8A785 /* EGOIndexedPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644C1704A44500B8A785 /* EGOIndexedPosition.m */; };
+		1894645C1704A44500B8A785 /* EGOIndexedRange.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644E1704A44500B8A785 /* EGOIndexedRange.m */; };
+		1894645D1704A44500B8A785 /* EGOLoupeView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464501704A44500B8A785 /* EGOLoupeView.m */; };
+		1894645E1704A44500B8A785 /* EGOMagnifyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464521704A44500B8A785 /* EGOMagnifyView.m */; };
+		1894645F1704A44500B8A785 /* EGOSearchOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464541704A44500B8A785 /* EGOSearchOperation.m */; };
+		189464601704A44500B8A785 /* EGOSelectionView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464561704A44500B8A785 /* EGOSelectionView.m */; };
+		189464611704A44500B8A785 /* EGOTextWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464581704A44500B8A785 /* EGOTextWindow.m */; };
+		189464641704A57400B8A785 /* LoupeOverlay.png in Resources */ = {isa = PBXBuildFile; fileRef = 189464621704A57400B8A785 /* LoupeOverlay.png */; };
+		189464651704A57400B8A785 /* LoupeOverlay@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 189464631704A57400B8A785 /* LoupeOverlay@2x.png */; };
 		8BC382981653269900E426DB /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BC382971653269900E426DB /* MobileCoreServices.framework */; };
-		8BC3829B1653273D00E426DB /* LSOTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 8BC3829A1653273D00E426DB /* LSOTextView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,9 +46,6 @@
 		03644E9013611C720015EC74 /* magnifier-ranged-lo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "magnifier-ranged-lo@2x.png"; sourceTree = "<group>"; };
 		03644E9113611C720015EC74 /* magnifier-ranged-mask@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "magnifier-ranged-mask@2x.png"; sourceTree = "<group>"; };
 		03C94661135E90E000EF024B /* drag-dot@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "drag-dot@2x.png"; sourceTree = "<group>"; };
-		03CDA262135DF850003B567F /* loupe-hi@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "loupe-hi@2x.png"; sourceTree = "<group>"; };
-		03CDA263135DF850003B567F /* loupe-lo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "loupe-lo@2x.png"; sourceTree = "<group>"; };
-		03CDA264135DF850003B567F /* loupe-mask@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "loupe-mask@2x.png"; sourceTree = "<group>"; };
 		03FF5EC7135CA49D00268656 /* EGOTextView_Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EGOTextView_Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		03FF5ECB135CA49D00268656 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		03FF5ECD135CA49D00268656 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -60,9 +64,27 @@
 		03FF5EED135CA4DA00268656 /* EGOTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOTextView.m; sourceTree = "<group>"; };
 		03FF5EFA135CA6AC00268656 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		03FF5EFC135CA6B200268656 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		189464471704A44500B8A785 /* EGOCaretView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOCaretView.h; sourceTree = "<group>"; };
+		189464481704A44500B8A785 /* EGOCaretView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOCaretView.m; sourceTree = "<group>"; };
+		189464491704A44500B8A785 /* EGOContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOContentView.h; sourceTree = "<group>"; };
+		1894644A1704A44500B8A785 /* EGOContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOContentView.m; sourceTree = "<group>"; };
+		1894644B1704A44500B8A785 /* EGOIndexedPosition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOIndexedPosition.h; sourceTree = "<group>"; };
+		1894644C1704A44500B8A785 /* EGOIndexedPosition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOIndexedPosition.m; sourceTree = "<group>"; };
+		1894644D1704A44500B8A785 /* EGOIndexedRange.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOIndexedRange.h; sourceTree = "<group>"; };
+		1894644E1704A44500B8A785 /* EGOIndexedRange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOIndexedRange.m; sourceTree = "<group>"; };
+		1894644F1704A44500B8A785 /* EGOLoupeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOLoupeView.h; sourceTree = "<group>"; };
+		189464501704A44500B8A785 /* EGOLoupeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOLoupeView.m; sourceTree = "<group>"; };
+		189464511704A44500B8A785 /* EGOMagnifyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOMagnifyView.h; sourceTree = "<group>"; };
+		189464521704A44500B8A785 /* EGOMagnifyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOMagnifyView.m; sourceTree = "<group>"; };
+		189464531704A44500B8A785 /* EGOSearchOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOSearchOperation.h; sourceTree = "<group>"; };
+		189464541704A44500B8A785 /* EGOSearchOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOSearchOperation.m; sourceTree = "<group>"; };
+		189464551704A44500B8A785 /* EGOSelectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOSelectionView.h; sourceTree = "<group>"; };
+		189464561704A44500B8A785 /* EGOSelectionView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOSelectionView.m; sourceTree = "<group>"; };
+		189464571704A44500B8A785 /* EGOTextWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOTextWindow.h; sourceTree = "<group>"; };
+		189464581704A44500B8A785 /* EGOTextWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOTextWindow.m; sourceTree = "<group>"; };
+		189464621704A57400B8A785 /* LoupeOverlay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LoupeOverlay.png; sourceTree = "<group>"; };
+		189464631704A57400B8A785 /* LoupeOverlay@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "LoupeOverlay@2x.png"; sourceTree = "<group>"; };
 		8BC382971653269900E426DB /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
-		8BC3829A1653273D00E426DB /* LSOTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSOTextView.m; sourceTree = "<group>"; };
-		8BC3829C165327A000E426DB /* LSOTextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LSOTextView.h; path = EGOTextView/LSOTextView.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,9 +120,8 @@
 				03644E9013611C720015EC74 /* magnifier-ranged-lo@2x.png */,
 				03644E9113611C720015EC74 /* magnifier-ranged-mask@2x.png */,
 				03C94661135E90E000EF024B /* drag-dot@2x.png */,
-				03CDA262135DF850003B567F /* loupe-hi@2x.png */,
-				03CDA263135DF850003B567F /* loupe-lo@2x.png */,
-				03CDA264135DF850003B567F /* loupe-mask@2x.png */,
+				189464621704A57400B8A785 /* LoupeOverlay.png */,
+				189464631704A57400B8A785 /* LoupeOverlay@2x.png */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -166,8 +187,24 @@
 			isa = PBXGroup;
 			children = (
 				03CDA261135DF850003B567F /* Resources */,
-				8BC3829C165327A000E426DB /* LSOTextView.h */,
-				8BC3829A1653273D00E426DB /* LSOTextView.m */,
+				189464471704A44500B8A785 /* EGOCaretView.h */,
+				189464481704A44500B8A785 /* EGOCaretView.m */,
+				189464491704A44500B8A785 /* EGOContentView.h */,
+				1894644A1704A44500B8A785 /* EGOContentView.m */,
+				1894644B1704A44500B8A785 /* EGOIndexedPosition.h */,
+				1894644C1704A44500B8A785 /* EGOIndexedPosition.m */,
+				1894644D1704A44500B8A785 /* EGOIndexedRange.h */,
+				1894644E1704A44500B8A785 /* EGOIndexedRange.m */,
+				1894644F1704A44500B8A785 /* EGOLoupeView.h */,
+				189464501704A44500B8A785 /* EGOLoupeView.m */,
+				189464511704A44500B8A785 /* EGOMagnifyView.h */,
+				189464521704A44500B8A785 /* EGOMagnifyView.m */,
+				189464531704A44500B8A785 /* EGOSearchOperation.h */,
+				189464541704A44500B8A785 /* EGOSearchOperation.m */,
+				189464551704A44500B8A785 /* EGOSelectionView.h */,
+				189464561704A44500B8A785 /* EGOSelectionView.m */,
+				189464571704A44500B8A785 /* EGOTextWindow.h */,
+				189464581704A44500B8A785 /* EGOTextWindow.m */,
 				03FF5EEC135CA4DA00268656 /* EGOTextView.h */,
 				03FF5EED135CA4DA00268656 /* EGOTextView.m */,
 			);
@@ -227,15 +264,14 @@
 				03FF5ED6135CA49D00268656 /* InfoPlist.strings in Resources */,
 				03FF5EDF135CA49E00268656 /* MainWindow.xib in Resources */,
 				03FF5EE5135CA49E00268656 /* EGOTextView_DemoViewController.xib in Resources */,
-				03CDA265135DF850003B567F /* loupe-hi@2x.png in Resources */,
-				03CDA266135DF850003B567F /* loupe-lo@2x.png in Resources */,
-				03CDA267135DF850003B567F /* loupe-mask@2x.png in Resources */,
 				03C94662135E90E000EF024B /* drag-dot@2x.png in Resources */,
 				03644E9213611C720015EC74 /* magnifier-ranged-hi@2x.png in Resources */,
 				03644E9313611C720015EC74 /* magnifier-ranged-lo-stemless@2x.png in Resources */,
 				03644E9413611C720015EC74 /* magnifier-ranged-lo@2x.png in Resources */,
 				03644E9513611C720015EC74 /* magnifier-ranged-mask@2x.png in Resources */,
 				031317AE13D50A5F00F8B414 /* MainWindow-iPad.xib in Resources */,
+				189464641704A57400B8A785 /* LoupeOverlay.png in Resources */,
+				189464651704A57400B8A785 /* LoupeOverlay@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,7 +286,15 @@
 				03FF5EDC135CA49D00268656 /* EGOTextView_DemoAppDelegate.m in Sources */,
 				03FF5EE2135CA49E00268656 /* EGOTextView_DemoViewController.m in Sources */,
 				03FF5EEE135CA4DA00268656 /* EGOTextView.m in Sources */,
-				8BC3829B1653273D00E426DB /* LSOTextView.m in Sources */,
+				189464591704A44500B8A785 /* EGOCaretView.m in Sources */,
+				1894645A1704A44500B8A785 /* EGOContentView.m in Sources */,
+				1894645B1704A44500B8A785 /* EGOIndexedPosition.m in Sources */,
+				1894645C1704A44500B8A785 /* EGOIndexedRange.m in Sources */,
+				1894645D1704A44500B8A785 /* EGOLoupeView.m in Sources */,
+				1894645E1704A44500B8A785 /* EGOMagnifyView.m in Sources */,
+				1894645F1704A44500B8A785 /* EGOSearchOperation.m in Sources */,
+				189464601704A44500B8A785 /* EGOSelectionView.m in Sources */,
+				189464611704A44500B8A785 /* EGOTextWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
