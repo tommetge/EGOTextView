@@ -319,8 +319,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [self scanAttachments];
     }
     
-    if (self.selectedRange.location >= length) {
-        self.selectedRange = NSMakeRange(length-1, 0);
+    if (self.selectedRange.location > length) {
+        self.selectedRange = NSMakeRange(length, 0);
     } else {
         self.selectedRange = NSMakeRange(self.selectedRange.location, 0);
     }
@@ -406,13 +406,13 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     CGMutablePathRef _path = CGPathCreateMutable();
     
-    CGRect firstRect = CGRectFromString([array lastObject]);
-    CGRect lastRect = CGRectFromString([array objectAtIndex:0]);
-    if ([array count]>1) {
-        lastRect.size.width = _textContentView.bounds.size.width-lastRect.origin.x;
+    CGRect firstRect = CGRectFromString([array objectAtIndex:0]);
+    CGRect lastRect = CGRectFromString([array lastObject]);
+    if ([array count] > 1) {
+        firstRect.size.width = _textContentView.bounds.size.width-firstRect.origin.x;
     }
     
-    if (cornerRadius>0) {
+    if (cornerRadius > 0) {
         CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:firstRect cornerRadius:cornerRadius].CGPath);
         CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:lastRect cornerRadius:cornerRadius].CGPath);
     } else {
@@ -424,19 +424,18 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		
         CGRect fillRect = CGRectZero;
         
-        CGFloat originX = ([array count]==2) ? MIN(CGRectGetMinX(firstRect), CGRectGetMinX(lastRect)) : 0.0f;
+        CGFloat originX = ([array count] == 2) ? MIN(CGRectGetMinX(firstRect), CGRectGetMinX(lastRect)) : 0.0f;
         CGFloat originY = firstRect.origin.y + firstRect.size.height;
-        CGFloat width = ([array count]==2) ? originX+MIN(CGRectGetMaxX(firstRect), CGRectGetMaxX(lastRect)) : _textContentView.bounds.size.width;
-        CGFloat height =  MAX(0.0f, lastRect.origin.y-originY);
+        CGFloat width = ([array count] == 2) ? originX + MIN(CGRectGetMaxX(firstRect), CGRectGetMaxX(lastRect)) : _textContentView.bounds.size.width;
+        CGFloat height =  MAX(0.0f, lastRect.origin.y - originY);
         
         fillRect = CGRectMake(originX, originY, width, height);
         
-        if (cornerRadius>0) {
+        if (cornerRadius > 0) {
             CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:fillRect cornerRadius:cornerRadius].CGPath);
         } else {
             CGPathAddRect(_path, NULL, fillRect);
         }
-		
     }
     
     CGContextRef ctx = UIGraphicsGetCurrentContext();
@@ -457,14 +456,12 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSInteger count = [lines count];
     
     for (int i = 0; i < count; i++) {
-		
         CTLineRef line = (__bridge CTLineRef) [lines objectAtIndex:i];
         CFRange lineRange = CTLineGetStringRange(line);
         NSRange range = NSMakeRange(lineRange.location==kCFNotFound ? NSNotFound : lineRange.location, lineRange.length);
         NSRange intersection = [self rangeIntersection:range withSecond:selectionRange];
         
         if (intersection.location != NSNotFound && intersection.length > 0) {
-			
             CGFloat xStart = CTLineGetOffsetForStringIndex(line, intersection.location, NULL);
             CGFloat xEnd = CTLineGetOffsetForStringIndex(line, intersection.location + intersection.length, NULL);
             
@@ -480,7 +477,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             }
             
             [pathRects addObject:NSStringFromCGRect(selectionRect)];
-            
         }
     }
     
@@ -874,30 +870,22 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self scrollRectToVisible:[_textContentView convertRect:rect toView:self] animated:YES];
 }
 
-#pragma mark - UIKeyboard
+#pragma mark - UIKeyboard notification
 
 - (void)keyboardWillShow:(NSNotification *)notification {
-    // keyboard frame is in window coordinates
 	NSDictionary *userInfo = [notification userInfo];
 	CGRect keyboardFrame = [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    
-    // convert own frame to window coordinates, frame is in superview's coordinates
-	CGRect ownFrame = [[[[UIApplication sharedApplication] delegate] window] convertRect:self.frame fromView:self.superview];
-    
-	// calculate the area of own frame that is covered by keyboard
+	CGRect ownFrame = [[[[UIApplication sharedApplication] delegate] window] convertRect:self.frame fromView:self.superview];    
 	CGRect coveredFrame = CGRectIntersection(ownFrame, keyboardFrame);
-    
-	// now this might be rotated, so convert it back
 	coveredFrame = [[[[UIApplication sharedApplication] delegate] window] convertRect:coveredFrame toView:self.superview];
     
-	// set inset to make up for covered array at bottom
-	self.contentInset = UIEdgeInsetsMake(0, 0, coveredFrame.size.height, 0);
-	self.scrollIndicatorInsets = self.contentInset;
+	[self setContentInset:UIEdgeInsetsMake(0, 0, coveredFrame.size.height, 0)];
+	[self setScrollIndicatorInsets:[self contentInset]];
 }
 
 - (void)keyboardDidShow:(NSNotification *)notification {
 	CGRect frame = _caretView.frame;
-	frame.origin.y -= (self.font.lineHeight*2);
+	frame.origin.y += (self.font.lineHeight*2);
 	if (!(_selectedRange.location == 0 && _selectedRange.length == 0)) {
 		[self scrollRectToVisible:[_textContentView convertRect:frame toView:self] animated:YES];
 	}
@@ -928,11 +916,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             [_textContentView setNeedsDisplay];
         }
         
-        _caretView.frame = [self caretRectForIndex:self.selectedRange.location];
+        [_caretView setFrame:[self caretRectForIndex:self.selectedRange.location]];
         [_caretView delayBlink];
         
         CGRect frame = _caretView.frame;
-        frame.origin.y -= (self.font.lineHeight*2);
+        frame.origin.y += (self.font.lineHeight*2);
         if (!(_selectedRange.location == 0 && _selectedRange.length == 0)) {
             [self scrollRectToVisible:[_textContentView convertRect:frame toView:self] animated:YES];
         }
@@ -1033,15 +1021,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         if (_caretView.superview) {
             [_caretView removeFromSuperview];
         }
-    } else {
-        if (!_caretView.superview) {
-            if (!_caretView.superview) {
-                [_textContentView addSubview:_caretView];
-                _caretView.frame = [self caretRectForIndex:self.selectedRange.location];
-                [_caretView delayBlink];
-            }
-        }
-        
+    } else if (!_caretView.superview) {
+		[_textContentView addSubview:_caretView];
+		_caretView.frame = [self caretRectForIndex:self.selectedRange.location];
+		[_caretView delayBlink];
     }
     
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -1487,7 +1470,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     self.selectedRange = selectedNSRange;
 	
     if (text.length > 1 || ([text isEqualToString:@" "] || [text isEqualToString:@"\n"])) {
-        [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
+        [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location]];
         [self checkLinksForRange:NSMakeRange(0, self.attributedString.length)];
     }
 }
@@ -2019,9 +2002,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 #pragma mark - UIGestureRecognizerDelegate
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
-shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
-{
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     if ([gestureRecognizer isKindOfClass:NSClassFromString(@"UIScrollViewPanGestureRecognizer")]) {
         UIMenuController *menuController = [UIMenuController sharedMenuController];
         if ([menuController isMenuVisible]) {
