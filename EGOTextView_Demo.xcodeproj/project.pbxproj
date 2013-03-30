@@ -25,6 +25,8 @@
 		03FF5EEE135CA4DA00268656 /* EGOTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 03FF5EED135CA4DA00268656 /* EGOTextView.m */; };
 		03FF5EFB135CA6AC00268656 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFA135CA6AC00268656 /* QuartzCore.framework */; };
 		03FF5EFD135CA6B200268656 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFC135CA6B200268656 /* CoreText.framework */; };
+		1809888A1706EA540005DF0B /* EGOTextView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1809888C1706EA540005DF0B /* EGOTextView.strings */; };
+		1809888F1706EEDF0005DF0B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1809888E1706EEDF0005DF0B /* Default-568h@2x.png */; };
 		189464591704A44500B8A785 /* EGOCaretView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464481704A44500B8A785 /* EGOCaretView.m */; };
 		1894645A1704A44500B8A785 /* EGOContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644A1704A44500B8A785 /* EGOContentView.m */; };
 		1894645B1704A44500B8A785 /* EGOIndexedPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644C1704A44500B8A785 /* EGOIndexedPosition.m */; };
@@ -64,6 +66,9 @@
 		03FF5EED135CA4DA00268656 /* EGOTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOTextView.m; sourceTree = "<group>"; };
 		03FF5EFA135CA6AC00268656 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		03FF5EFC135CA6B200268656 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		1809888B1706EA540005DF0B /* en */ = {isa = PBXFileReference; lastKnownFileType = file; name = en; path = en.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		1809888D1706EA650005DF0B /* it */ = {isa = PBXFileReference; lastKnownFileType = file; name = it; path = it.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		1809888E1706EEDF0005DF0B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
 		189464471704A44500B8A785 /* EGOCaretView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOCaretView.h; sourceTree = "<group>"; };
 		189464481704A44500B8A785 /* EGOCaretView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOCaretView.m; sourceTree = "<group>"; };
 		189464491704A44500B8A785 /* EGOContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOContentView.h; sourceTree = "<group>"; };
@@ -122,6 +127,7 @@
 				03C94661135E90E000EF024B /* drag-dot@2x.png */,
 				189464621704A57400B8A785 /* LoupeOverlay.png */,
 				189464631704A57400B8A785 /* LoupeOverlay@2x.png */,
+				1809888C1706EA540005DF0B /* EGOTextView.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -129,11 +135,11 @@
 		03FF5EBC135CA49D00268656 = {
 			isa = PBXGroup;
 			children = (
-				8BC382971653269900E426DB /* MobileCoreServices.framework */,
 				03FF5EEB135CA4AC00268656 /* EGOTextView */,
 				03FF5ED1135CA49D00268656 /* EGOTextView_Demo */,
 				03FF5ECA135CA49D00268656 /* Frameworks */,
 				03FF5EC8135CA49D00268656 /* Products */,
+				8BC382971653269900E426DB /* MobileCoreServices.framework */,
 				03FF5EFC135CA6B200268656 /* CoreText.framework */,
 				03FF5EFA135CA6AC00268656 /* QuartzCore.framework */,
 			);
@@ -160,6 +166,7 @@
 		03FF5ED1135CA49D00268656 /* EGOTextView_Demo */ = {
 			isa = PBXGroup;
 			children = (
+				1809888E1706EEDF0005DF0B /* Default-568h@2x.png */,
 				031317AB13D50A5D00F8B414 /* iPad */,
 				03FF5EDA135CA49D00268656 /* EGOTextView_DemoAppDelegate.h */,
 				03FF5EDB135CA49D00268656 /* EGOTextView_DemoAppDelegate.m */,
@@ -245,6 +252,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				it,
 			);
 			mainGroup = 03FF5EBC135CA49D00268656;
 			productRefGroup = 03FF5EC8135CA49D00268656 /* Products */;
@@ -272,6 +280,8 @@
 				031317AE13D50A5F00F8B414 /* MainWindow-iPad.xib in Resources */,
 				189464641704A57400B8A785 /* LoupeOverlay.png in Resources */,
 				189464651704A57400B8A785 /* LoupeOverlay@2x.png in Resources */,
+				1809888A1706EA540005DF0B /* EGOTextView.strings in Resources */,
+				1809888F1706EEDF0005DF0B /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +341,16 @@
 				03FF5EE4135CA49E00268656 /* en */,
 			);
 			name = EGOTextView_DemoViewController.xib;
+			sourceTree = "<group>";
+		};
+		1809888C1706EA540005DF0B /* EGOTextView.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1809888B1706EA540005DF0B /* en */,
+				1809888D1706EA650005DF0B /* it */,
+			);
+			name = EGOTextView.strings;
+			path = ..;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

@@ -32,6 +32,7 @@ extern NSString * const EGOTextSearch;
 extern NSString * const EGOTextSpellCheckingColor;
 extern NSString * const EGOTextAttachmentAttributeName;
 extern NSString * const EGOTextAttachmentPlaceholderString;
+extern NSString * const EGOTextViewLocalizationTable;
 
 @class EGOTextView;
 
@@ -73,18 +74,20 @@ extern NSString * const EGOTextAttachmentPlaceholderString;
 @property (nonatomic, strong) NSDictionary *defaultAttributes;
 @property (nonatomic, copy)   NSDictionary *typingAttributes;
 
-@property (nonatomic, readonly) NSUndoManager *undoManager;
+@property (nonatomic, strong, readonly) NSUndoManager *undoManager;
 
 @property (nonatomic, weak) id <EGOTextViewDelegate> delegate;
 @property (nonatomic, weak) id <EGOTextViewDrawDelegate> drawDelegate;
 @property (nonatomic, copy) NSAttributedString *attributedText;
 @property (nonatomic, copy) NSString *text;
 @property (nonatomic, strong) UIFont *font; // ignored when attributedString is not nil
-@property (nonatomic, getter = isEditable) BOOL editable; //default YES
-@property (nonatomic, readonly) BOOL hasText;
-@property (nonatomic, readonly) CGRect contentFrame;
+@property (nonatomic, assign, getter = isEditable) BOOL editable; //default YES
+@property (nonatomic, assign, readonly) BOOL hasText;
+@property (nonatomic, assign, readonly) CGRect contentFrame;
 @property (nonatomic, assign) NSRange selectedRange;
 @property (nonatomic, assign) NSRange markedRange;
+
+@property (nonatomic, strong) NSString *language;
 
 - (void)checkSpelling;
 - (void)scrollToTextRange:(NSRange)range;

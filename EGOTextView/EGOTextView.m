@@ -42,6 +42,10 @@ NSString * const EGOTextSpellCheckingColor = @"com.enormego.EGOTextSpellChecking
 NSString * const EGOTextAttachmentAttributeName = @"com.enormego.EGOTextAttachmentAttribute";
 NSString * const EGOTextAttachmentPlaceholderString = @"\uFFFC";
 
+NSString * const EGOTextViewLocalizationTable = @"EGOTextView";
+
+#define EGOLocalizedString(_key, _value) [_localizationBundle localizedStringForKey:(_key) value:(_value) table:EGOTextViewLocalizationTable]
+
 #pragma mark - Text attachment helper functions
 
 static void AttachmentRunDelegateDealloc(void *refCon) {
@@ -114,6 +118,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     NSMutableArray      *_attachmentViews;
     
+	NSBundle			*_localizationBundle;
 }
 
 @property (nonatomic, copy) NSAttributedString *attributedString;
@@ -130,9 +135,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 @implementation EGOTextView
 
 @dynamic delegate;
-@synthesize text=_text;
-@synthesize font=_font;
-@synthesize editable=_editable;
 @synthesize markedRange=_markedRange;
 @synthesize selectedRange=_selectedRange;
 @synthesize correctionRange=_correctionRange;
@@ -159,6 +161,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self setText:@""];
     [self setAlwaysBounceVertical:YES];
     [self setEditable:YES];
+	[self setLanguage:nil];
     [self setFont:[UIFont systemFontOfSize:17]];
     [self setBackgroundColor:[UIColor whiteColor]];
     [self setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
@@ -419,6 +422,17 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	if (oldAutocorrectionType == UITextAutocorrectionTypeNo && _autocorrectionType == UITextAutocorrectionTypeYes) {
 		[self checkSpelling];
 	}
+}
+
+- (void)setLanguage:(NSString *)language {
+	NSString *path = [[NSBundle mainBundle] pathForResource:language ofType:@"lproj"];
+	if (path && language) {
+		_localizationBundle = [NSBundle bundleWithPath:path];
+		_language = language;
+	} else {
+		_localizationBundle = [NSBundle mainBundle];
+		_language = [[[NSUserDefaults standardUserDefaults] objectForKey:@"AppleLanguages"] objectAtIndex:0];
+    }
 }
 
 #pragma mark - Layout methods
@@ -2167,12 +2181,18 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [menuController setMenuVisible:NO animated:NO];
     }
     
-	UIMenuItem *searchItem = [[UIMenuItem alloc] initWithTitle:@"Search" action:@selector(searchSelectedWord)];
-	UIMenuItem *undoItem = [[UIMenuItem alloc] initWithTitle:@"Undo" action:@selector(undo)];
-	UIMenuItem *redoItem = [[UIMenuItem alloc] initWithTitle:@"Redo" action:@selector(redo)];
+	UIMenuItem *searchItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"SEARCH", @"Search") action:@selector(searchSelectedWord)];
+	UIMenuItem *undoItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"UNDO", @"Undo") action:@selector(undo)];
+	UIMenuItem *redoItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"REDO", @"Redo") action:@selector(redo)];
+	UIMenuItem *copyItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"COPY", @"Copy") action:@selector(_copy:)];
+	UIMenuItem *cutItem  = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"CUT", @"Cut") action:@selector(_cut:)];
+	UIMenuItem *pasteItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"PASTE", @"Paste") action:@selector(_paste:)];
+	UIMenuItem *deleteItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"DELETE", @"Delete") action:@selector(_delete:)];
+	UIMenuItem *selectItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"SELECT", @"Select") action:@selector(_select:)];
+	UIMenuItem *selectAllItem = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"SELECT_ALL", @"Select all") action:@selector(_selectAll:)];
 	
     dispatch_async(dispatch_get_main_queue(), ^{
-        [menuController setMenuItems:@[searchItem, undoItem, redoItem]];
+        [menuController setMenuItems:@[selectItem, selectAllItem, copyItem, cutItem, pasteItem, deleteItem, searchItem, undoItem, redoItem]];
         [menuController setTargetRect:[self menuPresentationRect] inView:self];
         [menuController update];
         [menuController setMenuVisible:YES animated:YES];
@@ -2252,7 +2272,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
         [menuController setMenuItems:items];
     } else {
-        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle:@"No Replacements Found" action:@selector(spellCheckMenuEmpty:)];
+        UIMenuItem *item = [[UIMenuItem alloc] initWithTitle:EGOLocalizedString(@"NO_REPLACE", @"No replacements found") action:@selector(spellCheckMenuEmpty:)];
         [menuController setMenuItems:[NSArray arrayWithObject:item]];
     }
     [menuController setMenuVisible:YES animated:YES];
@@ -2278,15 +2298,15 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
         return NO;
     }
-    if (action == @selector(cut:)) {
+    if (action == @selector(_cut:)) {
         return (_selectedRange.length > 0 && _editing);
-    } else if (action == @selector(copy:)) {
+    } else if (action == @selector(_copy:)) {
         return (_selectedRange.length > 0);
-    } else if ((action == @selector(select:) || action == @selector(selectAll:))) {
+    } else if ((action == @selector(_select:) || action == @selector(_selectAll:))) {
         return (_selectedRange.length == 0 && [self hasText]);
-    } else if (action == @selector(paste:)) {
+    } else if (action == @selector(_paste:)) {
         return (_editing && [[UIPasteboard generalPasteboard] containsPasteboardTypes:[NSArray arrayWithObject:(id)kUTTypeText]]);
-    } else if (action == @selector(delete:)) {
+    } else if (action == @selector(_delete:)) {
         return (_selectedRange.location != NSNotFound && _selectedRange.length > 0);
     } else if (action == @selector(_showTextStyleOptions:)) {
         return NO;//YES;
@@ -2333,15 +2353,15 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     }
 }
 
-- (void)paste:(id)sender {
+- (void)_paste:(id)sender {
     NSString *pasteText = [[UIPasteboard generalPasteboard] valueForPasteboardType:(id)kUTTypeText];
     
-    if (pasteText!=nil) {
+    if (pasteText) {
         [self insertText:pasteText];
     }
 }
 
-- (void)selectAll:(id)sender {
+- (void)_selectAll:(id)sender {
     NSString *string = [_attributedString string];
     NSString *trimmedString = [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     self.selectedRange = [_attributedString.string rangeOfString:trimmedString];
@@ -2349,24 +2369,24 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(menuDidHide:) name:UIMenuControllerDidHideMenuNotification object:nil];
 }
 
-- (void)select:(id)sender {
+- (void)_select:(id)sender {
     NSRange range = [self characterRangeAtPoint_:_caretView.center];
     self.selectedRange = range;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(menuDidHide:) name:UIMenuControllerDidHideMenuNotification object:nil];
 }
 
-- (void)cut:(id)sender {
+- (void)_cut:(id)sender {
     [self copy:sender];
     [self delete:sender];
 }
 
-- (void)copy:(id)sender {
+- (void)_copy:(id)sender {
     NSString *string = [self.attributedString.string substringWithRange:_selectedRange];
     [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:(NSString*)kUTTypeUTF8PlainText];
 }
 
-- (void)delete:(id)sender {
+- (void)_delete:(id)sender {
     if (_selectedRange.location != NSNotFound && _selectedRange.length > 0) {
         [_mutableAttributedString setAttributedString:self.attributedString];
         [_mutableAttributedString deleteCharactersInRange:_selectedRange];
