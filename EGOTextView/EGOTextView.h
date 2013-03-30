@@ -25,17 +25,8 @@
 #import <UIKit/UIKit.h>
 #import <CoreText/CoreText.h>
 #import <UIKit/UITextChecker.h>
-
-#import "EGOCaretView.h"
 #import "EGOContentView.h"
-#import "EGOTextWindow.h"
-#import "EGOSelectionView.h"
-#import "EGOMagnifyView.h"
-#import "EGOIndexedPosition.h"
-#import "EGOIndexedRange.h"
 #import "EGOSearchOperation.h"
-
-#include <objc/runtime.h>
 
 extern NSString * const EGOTextSearch;
 extern NSString * const EGOTextSpellCheckingColor;
@@ -66,46 +57,18 @@ extern NSString * const EGOTextAttachmentPlaceholderString;
 @protocol EGOTextViewDrawDelegate;
 @protocol EGOTextAttachmentCell;
 
-@interface EGOTextView : UIScrollView <UITextInputTraits, UITextInput, EGOContentViewDelegate, EGOSearchDelegate> {
-@private
-    NSMutableAttributedString          *_mutableAttributedString;
-    NSDictionary                       *_markedTextStyle;
-    UITextInputStringTokenizer         *_tokenizer;
-    UITextChecker                      *_textChecker;
-    UILongPressGestureRecognizer       *_longPress;
-    
-    BOOL _ignoreSelectionMenu;
-    
-    NSAttributedString  *_attributedString;
-    UIFont              *_font;
-    BOOL                _editing;
-    BOOL                _editable;
-	
-    NSRange             _markedRange;
-    NSRange             _selectedRange;
-    NSRange             _correctionRange;
-    NSRange             _linkRange;
-	
-    CTFramesetterRef    _framesetter;
-    CTFrameRef          _frame;
-    
-    EGOContentView      *_textContentView;
-    EGOTextWindow       *_textWindow;
-    EGOCaretView        *_caretView;
-    EGOSelectionView    *_selectionView;
-    
-    NSMutableArray      *_attachmentViews;
-    
-}
+@interface EGOTextView : UIScrollView <UITextInputTraits, UITextInput, EGOContentViewDelegate, EGOSearchDelegate>
 
-@property (nonatomic) UIDataDetectorTypes dataDetectorTypes; // UIDataDetectorTypeLink supported
-@property (nonatomic) UITextAutocapitalizationType autocapitalizationType;
-@property (nonatomic) UITextSpellCheckingType spellCheckingType;
-@property (nonatomic) UITextAutocorrectionType autocorrectionType;
-@property (nonatomic) UIKeyboardType keyboardType;
-@property (nonatomic) UIKeyboardAppearance keyboardAppearance;
-@property (nonatomic) UIReturnKeyType returnKeyType;
-@property (nonatomic) BOOL enablesReturnKeyAutomatically;
+@property (nonatomic, assign) UIDataDetectorTypes dataDetectorTypes; // UIDataDetectorTypeLink supported
+@property (nonatomic, assign) UITextAutocapitalizationType autocapitalizationType;
+@property (nonatomic, assign) UITextSpellCheckingType spellCheckingType;
+@property (nonatomic, assign) UITextAutocorrectionType autocorrectionType;
+@property (nonatomic, assign) UIKeyboardType keyboardType;
+@property (nonatomic, assign) UIKeyboardAppearance keyboardAppearance;
+@property (nonatomic, assign) UIReturnKeyType returnKeyType;
+@property (nonatomic, assign) BOOL enablesReturnKeyAutomatically;
+
+@property (nonatomic, strong) NSDictionary *localizedStrings;
 
 @property (nonatomic, strong) NSDictionary *defaultAttributes;
 @property (nonatomic, copy)   NSDictionary *typingAttributes;
@@ -120,8 +83,8 @@ extern NSString * const EGOTextAttachmentPlaceholderString;
 @property (nonatomic, getter = isEditable) BOOL editable; //default YES
 @property (nonatomic, readonly) BOOL hasText;
 @property (nonatomic, readonly) CGRect contentFrame;
-@property (nonatomic) NSRange selectedRange;
-@property (nonatomic) NSRange markedRange;
+@property (nonatomic, assign) NSRange selectedRange;
+@property (nonatomic, assign) NSRange markedRange;
 
 - (void)checkSpelling;
 - (void)scrollToTextRange:(NSRange)range;

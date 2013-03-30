@@ -26,9 +26,19 @@
 #import "EGOTextView.h"
 #import <QuartzCore/QuartzCore.h>
 #import <MobileCoreServices/UTCoreTypes.h>
+#import "EGOCaretView.h"
+#import "EGOTextWindow.h"
+#import "EGOSelectionView.h"
+#import "EGOMagnifyView.h"
+#import "EGOIndexedPosition.h"
+#import "EGOIndexedRange.h"
+
+#include <objc/runtime.h>
 
 NSString * const EGOTextSearch = @"com.enormego.EGOTextSearch";
+
 NSString * const EGOTextSpellCheckingColor = @"com.enormego.EGOTextSpellCheckingColor";
+
 NSString * const EGOTextAttachmentAttributeName = @"com.enormego.EGOTextAttachmentAttribute";
 NSString * const EGOTextAttachmentPlaceholderString = @"\uFFFC";
 
@@ -74,7 +84,37 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 @end
 
-@interface EGOTextView ()
+@interface EGOTextView () {
+@private
+    NSMutableAttributedString          *_mutableAttributedString;
+    NSDictionary                       *_markedTextStyle;
+    UITextInputStringTokenizer         *_tokenizer;
+    UITextChecker                      *_textChecker;
+    UILongPressGestureRecognizer       *_longPress;
+    
+    BOOL _ignoreSelectionMenu;
+    
+    NSAttributedString  *_attributedString;
+    UIFont              *_font;
+    BOOL                _editing;
+    BOOL                _editable;
+	
+    NSRange             _markedRange;
+    NSRange             _selectedRange;
+    NSRange             _correctionRange;
+    NSRange             _linkRange;
+	
+    CTFramesetterRef    _framesetter;
+    CTFrameRef          _frame;
+    
+    EGOContentView      *_textContentView;
+    EGOTextWindow       *_textWindow;
+    EGOCaretView        *_caretView;
+    EGOSelectionView    *_selectionView;
+    
+    NSMutableArray      *_attachmentViews;
+    
+}
 
 @property (nonatomic, copy) NSAttributedString *attributedString;
 @property (nonatomic, copy) NSArray *searchRanges;
