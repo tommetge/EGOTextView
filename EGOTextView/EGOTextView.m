@@ -1756,19 +1756,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	
 	[_searchQueue cancelAllOperations];
 	[_searchQueue addOperation:searchOperation];
-	
-	/*NSString *string = [_attributedString string];
-	 NSMutableArray *searchRanges = [[NSMutableArray alloc] initWithCapacity:1];
-	 NSRange tempRange, searchRange = NSMakeRange(0, string.length);
-	 while ((tempRange = [string rangeOfString:word options:NSCaseInsensitiveSearch range:searchRange]).location != NSNotFound) {
-	 [searchRanges addObject:[EGOIndexedRange rangeWithNSRange:tempRange]];
-	 if (tempRange.location + tempRange.length < string.length) {
-	 searchRange = NSMakeRange(tempRange.location+tempRange.length, string.length-(tempRange.location+tempRange.length));
-	 } else {
-	 break;
-	 }
-	 }
-	 [self setSearchRange:[searchRanges copy]];*/
 }
 
 - (void)searchDidComplete:(NSArray *)searchRange {
@@ -1809,14 +1796,13 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         return ;
     }
     
-	NSMutableAttributedString *_mutableText = [[NSMutableAttributedString alloc] initWithAttributedString:self.attributedString];
     [_mutableAttributedString setAttributedString:self.attributedString];
     
     NSInteger location = range.location-1;
     NSInteger currentOffset = MAX(0, location);
     NSRange currentRange;
-    NSString *string = _mutableText.string;
-    NSRange stringRange = NSMakeRange(0, string.length - (string.length == 0 ? 0 : 1));
+    NSString *string = _mutableAttributedString.string;
+    NSRange stringRange = NSMakeRange(0, string.length);
     BOOL done = NO;
     
     NSString *language = [[NSLocale currentLocale] localeIdentifier];
