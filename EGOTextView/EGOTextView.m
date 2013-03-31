@@ -435,6 +435,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     }
 }
 
+- (void)setBackgroundColor:(UIColor *)backgroundColor {
+	[super setBackgroundColor:backgroundColor];
+	[_textContentView setBackgroundColor:backgroundColor];
+}
+
 #pragma mark - Layout methods
 
 - (NSRange)rangeIntersection:(NSRange)first withSecond:(NSRange)second {
