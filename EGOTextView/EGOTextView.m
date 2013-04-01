@@ -1107,26 +1107,29 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 + (UIColor *)selectionColor {
-    static UIColor *color = nil;
-    if (!color) {
+    static UIColor *color;
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         color = [UIColor colorWithRed:0.f green:0.35f blue:0.65f alpha:0.2f];
-    }
+    });
     return color;
 }
 
 + (UIColor *)caretColor {
-    static UIColor *color = nil;
-    if (!color) {
+	static UIColor *color;
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         color = [UIColor colorWithRed:0.259f green:0.420f blue:0.949f alpha:1.0f];
-    }
+    });
     return color;
 }
 
-+ (UIColor*)spellingSelectionColor {
-    static UIColor *color = nil;
-    if (!color) {
++ (UIColor *)spellingSelectionColor {
+	static UIColor *color;
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         color = [UIColor colorWithRed:1.f green:0.f blue:0.f alpha:0.149f];
-    }
+    });
     return color;
 }
 
@@ -1539,12 +1542,27 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)deleteBackward {
+	static NSCharacterSet *characterSet;
+	static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+		NSMutableCharacterSet *mutableCharacterSet = [[NSMutableCharacterSet alloc] init];
+        [mutableCharacterSet formUnionWithCharacterSet:[NSCharacterSet punctuationCharacterSet]];
+		[mutableCharacterSet formUnionWithCharacterSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+		characterSet = [mutableCharacterSet copy];
+    });
+	
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showCorrectionMenuWithoutSelection) object:nil];
     
     NSRange selectedNSRange = self.selectedRange;
     NSRange markedTextRange = self.markedRange;
     
     if (_correctionRange.location != NSNotFound && _correctionRange.length > 0) {
+		if ((_correctionRange.location == 0 || [_attributedString.string characterAtIndex:_correctionRange.location-1] == ' ') &&
+			(_correctionRange.location+_correctionRange.length == _attributedString.string.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:_correctionRange.location+_correctionRange.length]])) {
+			_correctionRange.location = MAX(0, _correctionRange.location-1);
+			_correctionRange.length   = MIN(_attributedString.length, _correctionRange.length+1);
+		}
+		
 		[self deleteCharactersInRange:self.correctionRange];
         
 		selectedNSRange.location = self.correctionRange.location;
@@ -1557,13 +1575,19 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         selectedNSRange.length = 0;
 		markedTextRange = NSMakeRange(NSNotFound, 0);
     } else if (selectedNSRange.length > 0) {
+		if ((selectedNSRange.location == 0 || [_attributedString.string characterAtIndex:selectedNSRange.location-1] == ' ') &&
+			(selectedNSRange.location+selectedNSRange.length == _attributedString.string.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:selectedNSRange.location+selectedNSRange.length]])) {
+			selectedNSRange.location = MAX(0, selectedNSRange.location-1);
+			selectedNSRange.length   = MIN(_attributedString.length, selectedNSRange.length+1);
+		}
+		
 		[self deleteCharactersInRange:selectedNSRange];
         
         selectedNSRange.length = 0;
     } else if (selectedNSRange.location > 0) {
-        NSInteger theIndex = MAX(0, selectedNSRange.location-1);
-        theIndex = MIN(_attributedString.length-1, theIndex);
-        if ([_attributedString.string characterAtIndex:theIndex] == ' ') {
+        NSInteger index = MAX(0, selectedNSRange.location-1);
+        index = MIN(_attributedString.length-1, index);
+        if ([_attributedString.string characterAtIndex:index] == ' ') {
             [self performSelector:@selector(showCorrectionMenuWithoutSelection) withObject:nil afterDelay:0.2f];
         }
         
@@ -1572,10 +1596,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		[self deleteCharactersInRange:selectedNSRange];
         
         selectedNSRange.length = 0;
-    } else if (selectedNSRange.location > _mutableAttributedString.length) {
-		selectedNSRange.location = _mutableAttributedString.length;
-		selectedNSRange.length = 0;
-	}
+    }
     
     self.markedRange = markedTextRange;
     self.selectedRange = selectedNSRange;
