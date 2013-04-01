@@ -733,23 +733,27 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSInteger count = [lines count];
     CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
     CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-    CFIndex theIndex = kCFNotFound;
+    CFIndex index = kCFNotFound;
     
     for (int i = 0; i < lines.count; i++) {
         if (point.y > origins[i].y) {
             CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
             CGPoint convertedPoint = CGPointMake(point.x - origins[i].x, point.y - origins[i].y);
-            theIndex = CTLineGetStringIndexForPosition(line, convertedPoint);
+            index = CTLineGetStringIndexForPosition(line, convertedPoint);
+			CFRange lineRange = CTLineGetStringRange(line);
+			if (index != kCFNotFound && index == lineRange.location + lineRange.length) {
+				index = index - 1;
+			}
             break;
         }
     }
     
-    if (theIndex == kCFNotFound) {
-        theIndex = [_attributedString length];
+    if (index == kCFNotFound) {
+        index = [_attributedString length];
     }
     
     free(origins);
-    return theIndex;
+    return index;
 }
 
 - (NSRange)characterRangeAtPoint_:(CGPoint)point {
@@ -1897,9 +1901,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		
         point.y -= 20.0f;
         NSInteger index = [self closestIndexToPoint:point];
-        /*if (index < self.attributedString.length && [self.attributedString.string characterAtIndex:index] == '\n') {
-		 index--;
-		 }*/
         
         if (_selection) {
             
