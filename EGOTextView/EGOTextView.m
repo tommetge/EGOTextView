@@ -358,7 +358,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSUInteger length = [_attributedString length];
     NSRange range = NSMakeRange(0, length);
     if (!_editing && !_editable) {
-        [self checkLinksForRange:range];
+		if (self.dataDetectorTypes & UIDataDetectorTypeLink) {
+			[self checkLinksForRange:range];
+		}
         [self scanAttachments];
     }
     
@@ -665,9 +667,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     __block NSRange returnRange = NSMakeRange(_attributedString.length, 0);
     
     for (int i = 0; i < lines.count; i++) {
-        
         if (point.y > origins[i].y) {
-            
             CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
             CFRange cfRange = CTLineGetStringRange(line);
             NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
@@ -757,36 +757,33 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (NSRange)characterRangeAtPoint_:(CGPoint)point {
+	point.y = _textContentView.frame.size.height - point.y;
+	
 	__block NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    
     CGPoint *origins = (CGPoint *)malloc([lines count] * sizeof(CGPoint));
     CTFrameGetLineOrigins(_frame, CFRangeMake(0, [lines count]), origins);
     __block NSRange returnRange = NSMakeRange(NSNotFound, 0);
 	
     for (int i = 0; i < lines.count; i++) {
-        
         if (point.y > origins[i].y) {
-			
-            CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
+            __block CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
             CGPoint convertedPoint = CGPointMake(point.x - origins[i].x, point.y - origins[i].y);
-            NSInteger theIndex = CTLineGetStringIndexForPosition(line, convertedPoint);
-			
+            NSInteger index = CTLineGetStringIndexForPosition(line, convertedPoint);
             CFRange cfRange = CTLineGetStringRange(line);
             NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
-            
-            [_attributedString.string enumerateSubstringsInRange:range options:NSStringEnumerationByWords usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
+            [_attributedString.string enumerateSubstringsInRange:range
+														 options:NSStringEnumerationByWords
+													  usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
+														  returnRange = subStringRange;
+														  if (index - subStringRange.location <= subStringRange.length) {
+															  *stop = YES;
+														  }
                 
-                returnRange = subStringRange;
-                if (theIndex - subStringRange.location <= subStringRange.length) {
-                    *stop = YES;
-                }
-                
-            }];
-            
+													  }];
             break;
         }
     }
-    
+	
     free(origins);
     return returnRange;
 }
@@ -796,27 +793,19 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSInteger count = [lines count];
     __block NSRange returnRange = NSMakeRange(NSNotFound, 0);
     
-    for (int i=0; i < count; i++) {
-        
+    for (int i = 0; i < count; i++) {
         __block CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
         CFRange cfRange = CTLineGetStringRange(line);
         NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length == kCFNotFound ? 0 : cfRange.length);
         
-        if (inIndex >= range.location && inIndex <= range.location+range.length) {
-            
-            if (range.length > 1) {
-                
-                [_attributedString.string enumerateSubstringsInRange:range options:NSStringEnumerationByWords usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
-                    
-                    if (inIndex - subStringRange.location <= subStringRange.length) {
-                        returnRange = subStringRange;
-                        *stop = YES;
-                    }
-                    
-                }];
-                
-            }
-			
+        if (inIndex >= range.location && inIndex <= range.location+range.length && range.length > 1) {
+            [_attributedString.string enumerateSubstringsInRange:range options:NSStringEnumerationByWords usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
+				if (inIndex - subStringRange.location <= subStringRange.length) {
+					returnRange = subStringRange;
+					*stop = YES;
+				}
+			}];
+			break;
         }
     }
     return returnRange;
@@ -884,7 +873,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 				
             }
             
-            returnRect = CGRectMake(origin.x + xPos, floorf(origin.y + ascent), caretWidth, ceilf(descent + ascent));
+            returnRect = CGRectMake(origin.x + xPos - caretWidth/2, floorf(origin.y + ascent), caretWidth, ceilf(descent + ascent));
 			returnRect.origin.y = _textContentView.frame.size.height - returnRect.origin.y;
         }
         
@@ -1045,6 +1034,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     }
     
     _correctionRange = range;
+	
     if (range.location != NSNotFound && range.length > 0) {
         if (_caretView.superview) {
             [_caretView removeFromSuperview];
@@ -1482,7 +1472,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)insertText:(NSString *)text {
-    if (!text) return;
+    if (!text || text.length == 0) return;
     
     NSRange selectedNSRange = self.selectedRange;
     NSRange markedTextRange = self.markedRange;
@@ -1535,9 +1525,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     self.markedRange = markedTextRange;
     self.selectedRange = selectedNSRange;
 	
-    if (text.length > 1 || ([text isEqualToString:@" "] || [text isEqualToString:@"\n"])) {
-        [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location]];
-        [self checkLinksForRange:NSMakeRange(0, self.attributedString.length)];
+    if (text.length > 1 || [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
+        [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
+		if (self.dataDetectorTypes & UIDataDetectorTypeLink) {
+			[self checkLinksForRange:NSMakeRange(0, self.attributedString.length)];
+		}
     }
 }
 
@@ -1558,7 +1550,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     if (_correctionRange.location != NSNotFound && _correctionRange.length > 0) {
 		if ((_correctionRange.location == 0 || [_attributedString.string characterAtIndex:_correctionRange.location-1] == ' ') &&
-			(_correctionRange.location+_correctionRange.length == _attributedString.string.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:_correctionRange.location+_correctionRange.length]])) {
+			(_correctionRange.location+_correctionRange.length == _attributedString.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:_correctionRange.location+_correctionRange.length]])) {
 			_correctionRange.location = MAX(0, _correctionRange.location-1);
 			_correctionRange.length   = MIN(_attributedString.length, _correctionRange.length+1);
 		}
@@ -1576,7 +1568,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		markedTextRange = NSMakeRange(NSNotFound, 0);
     } else if (selectedNSRange.length > 0) {
 		if ((selectedNSRange.location == 0 || [_attributedString.string characterAtIndex:selectedNSRange.location-1] == ' ') &&
-			(selectedNSRange.location+selectedNSRange.length == _attributedString.string.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:selectedNSRange.location+selectedNSRange.length]])) {
+			(selectedNSRange.location+selectedNSRange.length == _attributedString.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:selectedNSRange.location+selectedNSRange.length]])) {
 			selectedNSRange.location = MAX(0, selectedNSRange.location-1);
 			selectedNSRange.length   = MIN(_attributedString.length, selectedNSRange.length+1);
 		}
@@ -2042,7 +2034,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     if (self.selectedRange.length > 0) {
         self.selectedRange = NSMakeRange(_selectedRange.location, 0);
-    }
+    } else if (self.selectedRange.location != NSNotFound) {
+		[self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location]];
+	}
     
     NSInteger index = [self closestWhiteSpaceIndexToPoint:[gesture locationInView:self]];
     
@@ -2154,8 +2148,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             [self.delegate egoTextViewDidEndEditing:self];
         }
         
+		if (self.correctionRange.location != NSNotFound && self.correctionRange.length > 0) {
+			[self insertCorrectionAttributesForRange:self.correctionRange];
+			self.correctionRange = NSMakeRange(NSNotFound, 0);
+		}
         self.selectedRange = NSMakeRange(0, 0);
-        
     }
     
     if (_typingAttributes) {
