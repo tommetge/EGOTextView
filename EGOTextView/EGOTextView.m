@@ -49,6 +49,7 @@ NSString * const EGOTextViewLocalizationTable = @"EGOTextView";
 #pragma mark - Text attachment helper functions
 
 static void AttachmentRunDelegateDealloc(void *refCon) {
+	//CFBridgingRelease(refCon);
 }
 
 static CGSize AttachmentRunDelegateGetSize(void *refCon) {
@@ -1569,7 +1570,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     } else if (selectedNSRange.length > 0) {
 		if ((selectedNSRange.location == 0 || [_attributedString.string characterAtIndex:selectedNSRange.location-1] == ' ') &&
 			(selectedNSRange.location+selectedNSRange.length == _attributedString.length || [characterSet characterIsMember:[_attributedString.string characterAtIndex:selectedNSRange.location+selectedNSRange.length]])) {
-			selectedNSRange.location = MAX(0, selectedNSRange.location-1);
+			selectedNSRange.location = (selectedNSRange.location == 0 ? 0 : selectedNSRange.location-1);
 			selectedNSRange.length   = MIN(_attributedString.length, selectedNSRange.length+1);
 		}
 		
