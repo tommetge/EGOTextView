@@ -22,13 +22,13 @@
  //  THE SOFTWARE.
  //
 
-"CUT"        = "Cut";
-"COPY"       = "Copy";
-"PASTE"      = "Paste";
-"DELETE"     = "Delete";
-"SELECT"     = "Select";
-"SELECT_ALL" = "Select all";
-"UNDO"       = "Undo";
-"REDO"       = "Redo";
-"SEARCH"     = "Search";
-"NO_REPLACE" = "No replacements found";
+"CUT"        = "Ausschneiden";
+"COPY"       = "Kopieren";
+"PASTE"      = "Einsetzen";
+"DELETE"     = "Löschen";
+"SELECT"     = "Auswählen";
+"SELECT_ALL" = "Alles";
+"UNDO"       = "Rückgängig machen";
+"REDO"       = "Noch einmal machen";
+"SEARCH"     = "Suchen";
+"NO_REPLACE" = "Kein Ersatz gefunden";

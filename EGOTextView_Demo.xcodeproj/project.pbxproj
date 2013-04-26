@@ -66,8 +66,10 @@
 		03FF5EED135CA4DA00268656 /* EGOTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOTextView.m; sourceTree = "<group>"; };
 		03FF5EFA135CA6AC00268656 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		03FF5EFC135CA6B200268656 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
-		1809888B1706EA540005DF0B /* en */ = {isa = PBXFileReference; lastKnownFileType = file; name = en; path = en.lproj/EGOTextView.strings; sourceTree = "<group>"; };
-		1809888D1706EA650005DF0B /* it */ = {isa = PBXFileReference; lastKnownFileType = file; name = it; path = it.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		180804F8172AD316003A8A63 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		180804F9172AD54D003A8A63 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		1809888B1706EA540005DF0B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/EGOTextView.strings; sourceTree = "<group>"; };
+		1809888D1706EA650005DF0B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/EGOTextView.strings; sourceTree = "<group>"; };
 		1809888E1706EEDF0005DF0B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
 		189464471704A44500B8A785 /* EGOCaretView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOCaretView.h; sourceTree = "<group>"; };
 		189464481704A44500B8A785 /* EGOCaretView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOCaretView.m; sourceTree = "<group>"; };
@@ -253,6 +255,8 @@
 			knownRegions = (
 				en,
 				it,
+				de,
+				es,
 			);
 			mainGroup = 03FF5EBC135CA49D00268656;
 			productRefGroup = 03FF5EC8135CA49D00268656 /* Products */;
@@ -348,6 +352,8 @@
 			children = (
 				1809888B1706EA540005DF0B /* en */,
 				1809888D1706EA650005DF0B /* it */,
+				180804F8172AD316003A8A63 /* de */,
+				180804F9172AD54D003A8A63 /* es */,
 			);
 			name = EGOTextView.strings;
 			path = ..;
