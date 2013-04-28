@@ -800,12 +800,14 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length == kCFNotFound ? 0 : cfRange.length);
         
         if (inIndex >= range.location && inIndex <= range.location+range.length && range.length > 1) {
-            [_attributedString.string enumerateSubstringsInRange:range options:NSStringEnumerationByWords usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
-				if (inIndex - subStringRange.location <= subStringRange.length) {
-					returnRange = subStringRange;
-					*stop = YES;
-				}
-			}];
+            [_attributedString.string enumerateSubstringsInRange:range
+                                                         options:NSStringEnumerationByWords
+                                                      usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
+                                                          if (inIndex - subStringRange.location <= subStringRange.length) {
+                                                              returnRange = subStringRange;
+                                                              *stop = YES;
+                                                          }
+                                                      }];
 			break;
         }
     }
@@ -1527,7 +1529,13 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     self.selectedRange = selectedNSRange;
 	
     if (text.length > 1 || [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
-        [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
+        if (text.length == 1) {
+            [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
+        } else {
+            NSRange startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];
+            NSRange endRange   = [self characterRangeAtIndex:self.selectedRange.location - 1];
+            [self checkSpellingForRange:NSUnionRange(startRange, endRange)];
+        }
 		if (self.dataDetectorTypes & UIDataDetectorTypeLink) {
 			[self checkLinksForRange:NSMakeRange(0, self.attributedString.length)];
 		}
@@ -1815,7 +1823,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)checkSpellingForRange:(NSRange)range {
-    if (self.autocorrectionType == UITextAutocorrectionTypeNo || range.length == 0) {
+    if (self.autocorrectionType == UITextAutocorrectionTypeNo || range.location == NSNotFound || range.length == 0 || range.length == NSNotFound) {
         return ;
     }
     
