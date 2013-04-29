@@ -1532,8 +1532,21 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         if (text.length == 1) {
             [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
         } else {
-            NSRange startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];
-            NSRange endRange   = [self characterRangeAtIndex:self.selectedRange.location - 1];
+            NSRange startRange;
+            NSRange endRange;
+            
+            if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
+                startRange = NSMakeRange(self.selectedRange.location - text.length + 1, 1);
+            } else {
+                startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];
+            }
+            
+            if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:text.length - 1]]) {
+                endRange = NSMakeRange(self.selectedRange.location - 1, 1);
+            } else {
+                endRange = [self characterRangeAtIndex:self.selectedRange.location - 1];
+            }
+
             [self checkSpellingForRange:NSUnionRange(startRange, endRange)];
         }
 		if (self.dataDetectorTypes & UIDataDetectorTypeLink) {
