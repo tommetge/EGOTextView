@@ -706,7 +706,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             }
             
             [_attributedString.string enumerateSubstringsInRange:range
-														 options:NSStringEnumerationByWords
+														 options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
 													  usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
 														  if (NSLocationInRange(theIndex, enclosingRange)) {
 															  if (theIndex > (enclosingRange.location+(enclosingRange.length/2))) {
@@ -773,13 +773,15 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             CFRange cfRange = CTLineGetStringRange(line);
             NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
             [_attributedString.string enumerateSubstringsInRange:range
-														 options:NSStringEnumerationByWords
+														 options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
 													  usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
-														  returnRange = subStringRange;
-														  if (index - subStringRange.location <= subStringRange.length) {
-															  *stop = YES;
-														  }
-                
+														  if (NSLocationInRange(index, subStringRange)) {
+                                                              returnRange = subStringRange;
+                                                              *stop = YES;
+                                                          } else if (NSLocationInRange(index, enclosingRange)) {
+                                                              returnRange = enclosingRange;
+                                                              *stop = YES;
+                                                          }
 													  }];
             break;
         }
@@ -800,11 +802,15 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length == kCFNotFound ? 0 : cfRange.length);
         
         if (inIndex >= range.location && inIndex <= range.location+range.length && range.length > 1) {
+            returnRange = range;
             [_attributedString.string enumerateSubstringsInRange:range
-                                                         options:NSStringEnumerationByWords
+                                                         options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
                                                       usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
-                                                          if (inIndex - subStringRange.location <= subStringRange.length) {
+                                                          if (NSLocationInRange(inIndex, subStringRange)) {
                                                               returnRange = subStringRange;
+                                                              *stop = YES;
+                                                          } else if (NSLocationInRange(inIndex, enclosingRange)) {
+                                                              returnRange = enclosingRange;
                                                               *stop = YES;
                                                           }
                                                       }];
@@ -1130,10 +1136,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (NSString *)textInRange:(UITextRange *)range {
     EGOIndexedRange *r = (EGOIndexedRange *)range;
-    if (r.range.location + r.range.length > _attributedString.length) {
-        r = [EGOIndexedRange rangeWithNSRange:NSMakeRange(r.range.location, _attributedString.length)];
-    }
-    return ([_attributedString.string substringWithRange:r.range]);
+    return ([_attributedString.string substringWithRange:NSMakeRange(r.range.location, MIN(r.range.length, _attributedString.length - r.range.location))]);
 }
 
 - (void)replaceRange:(UITextRange *)range withText:(NSString *)text {
@@ -1517,10 +1520,14 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         selectedNSRange.location = (selectedNSRange.location + text.length);
         
     } else {
-        
+
 		[[_undoManager prepareWithInvocationTarget:self] deleteCharactersInRange:NSMakeRange(selectedNSRange.location, newString.length)];
         [_mutableAttributedString insertAttributedString:newString atIndex:selectedNSRange.location];
 		selectedNSRange.location += text.length;
+        
+        if (text.length == 1 && ![[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
+            [_mutableAttributedString removeAttribute:EGOTextSpellCheckingColor range:[self characterRangeAtIndex:selectedNSRange.location]];
+        }
         
     }
     
@@ -1532,23 +1539,12 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         if (text.length == 1) {
             [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
         } else {
-            NSRange startRange;
-            NSRange endRange;
+            NSRange startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];;
+            NSRange endRange = [self characterRangeAtIndex:self.selectedRange.location - 1];
             
-            if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
-                startRange = NSMakeRange(self.selectedRange.location - text.length + 1, 1);
-            } else {
-                startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];
-            }
-            
-            if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:text.length - 1]]) {
-                endRange = NSMakeRange(self.selectedRange.location - 1, 1);
-            } else {
-                endRange = [self characterRangeAtIndex:self.selectedRange.location - 1];
-            }
-
             [self checkSpellingForRange:NSUnionRange(startRange, endRange)];
         }
+        
 		if (self.dataDetectorTypes & UIDataDetectorTypeLink) {
 			[self checkLinksForRange:NSMakeRange(0, self.attributedString.length)];
 		}
