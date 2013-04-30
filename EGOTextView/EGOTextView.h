@@ -25,7 +25,6 @@
 #import <UIKit/UIKit.h>
 #import <CoreText/CoreText.h>
 #import <UIKit/UITextChecker.h>
-#import "EGOContentView.h"
 #import "EGOSearchOperation.h"
 
 extern NSString * const EGOTextSearch;
@@ -58,7 +57,7 @@ extern NSString * const EGOTextViewLocalizationTable;
 @protocol EGOTextViewDrawDelegate;
 @protocol EGOTextAttachmentCell;
 
-@interface EGOTextView : UIScrollView <UITextInputTraits, UITextInput, EGOContentViewDelegate, EGOSearchDelegate>
+@interface EGOTextView : UIScrollView <UITextInputTraits, UITextInput, EGOSearchDelegate>
 
 @property (nonatomic, assign) UIDataDetectorTypes dataDetectorTypes; // UIDataDetectorTypeLink supported
 @property (nonatomic, assign) UITextAutocapitalizationType autocapitalizationType;
@@ -111,7 +110,7 @@ extern NSString * const EGOTextViewLocalizationTable;
 // the attachment must either implement -attachmentView or both -attachmentSize and -attachmentDrawInRect:
 - (UIView *)attachmentView;
 
-- (CGSize) attachmentSize;
-- (void) attachmentDrawInRect: (CGRect)r;
+- (CGSize)attachmentSize;
+- (void)attachmentDrawInRect:(CGRect)r;
 
 @end

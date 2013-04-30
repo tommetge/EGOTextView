@@ -1,5 +1,5 @@
 //
-//  EGOContentView.h
+//  EGOTextView.h
 //
 //  Created by Devin Doty on 4/18/11.
 //  Copyright (C) 2011 by enormego.
@@ -21,23 +21,12 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
-//
 
-#import <UIKit/UIKit.h>
-#import "EGOTextView.h"
+@interface EGOTextView ()
 
-@interface EGOContentView : UIView
-
-@property (nonatomic, weak) EGOTextView *textView;
-
-- (void)drawText;
-
-- (NSRange)characterRangeAtPoint:(CGPoint)point;
-- (NSRange)characterRangeAtIndex:(NSInteger)inIndex;
-- (NSInteger)closestIndexToPoint:(CGPoint)point fromView:(UIView *)sourceView;
-- (NSInteger)closestWhiteSpaceIndexToPoint:(CGPoint)point fromView:(UIView *)sourceView;
-- (CGRect)caretRectForIndex:(NSInteger)inIndex;
-- (CGRect)firstRectForNSRange:(NSRange)range;
-- (NSInteger *)positionFromPosition:(NSInteger)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset;
+@property (nonatomic, assign) NSRange correctionRange;
+@property (nonatomic, assign) NSRange linkRange;
+@property (nonatomic, copy) NSArray *searchRanges;
+@property (nonatomic, copy) NSMutableArray *attachmentViews;
 
 @end

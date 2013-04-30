@@ -24,6 +24,7 @@
 //
 
 #import "EGOTextView.h"
+#import "EGOTextView+Protected.h"
 #import <QuartzCore/QuartzCore.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 #import "EGOCaretView.h"
@@ -32,6 +33,7 @@
 #import "EGOMagnifyView.h"
 #import "EGOIndexedPosition.h"
 #import "EGOIndexedRange.h"
+#import "EGOContentView.h"
 
 #include <objc/runtime.h>
 
@@ -71,24 +73,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 #pragma mark - EGOTextView private
 
-@interface EGOTextView (Private)
-
-- (CGRect)caretRectForIndex:(int)inIndex;
-- (CGRect)firstRectForNSRange:(NSRange)range;
-- (NSInteger)closestIndexToPoint:(CGPoint)point;
-- (NSRange)characterRangeAtPoint_:(CGPoint)point;
-- (void)checkSpellingForRange:(NSRange)range;
-- (void)textChanged;
-- (void)removeCorrectionAttributesForRange:(NSRange)range;
-- (void)insertCorrectionAttributesForRange:(NSRange)range;
-- (void)showCorrectionMenuForRange:(NSRange)range;
-- (void)checkLinksForRange:(NSRange)range;
-- (void)scanAttachments;
-- (void)showMenu;
-- (CGRect)menuPresentationRect;
-
-@end
-
 @interface EGOTextView () {
 @private
     NSMutableAttributedString          *_mutableAttributedString;
@@ -103,32 +87,19 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     UIFont              *_font;
     BOOL                _editing;
     BOOL                _editable;
-	
-    NSRange             _markedRange;
-    NSRange             _selectedRange;
-    NSRange             _correctionRange;
-    NSRange             _linkRange;
-	
-    CTFramesetterRef    _framesetter;
-    CTFrameRef          _frame;
     
     EGOContentView      *_textContentView;
     EGOTextWindow       *_textWindow;
     EGOCaretView        *_caretView;
     EGOSelectionView    *_selectionView;
     
-    NSMutableArray      *_attachmentViews;
-    
 	NSBundle			*_localizationBundle;
 }
 
 @property (nonatomic, copy) NSAttributedString *attributedString;
-@property (nonatomic, copy) NSArray *searchRanges;
 @property (nonatomic, strong) NSDictionary *correctionAttributes;
 @property (nonatomic, strong) NSMutableDictionary *menuItemActions;
 @property (nonatomic, strong) NSOperationQueue *searchQueue;
-@property (nonatomic, assign) NSRange correctionRange;
-@property (nonatomic, assign) dispatch_semaphore_t drawLock;
 
 @end
 
@@ -136,9 +107,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 @implementation EGOTextView
 
 @dynamic delegate;
-@synthesize markedRange=_markedRange;
-@synthesize selectedRange=_selectedRange;
-@synthesize correctionRange=_correctionRange;
 @synthesize defaultAttributes=_defaultAttributes;
 @synthesize typingAttributes=_typingAttributes;
 @synthesize correctionAttributes=_correctionAttributes;
@@ -173,11 +141,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     _textContentView = [[EGOContentView alloc] initWithFrame:self.bounds];
     [_textContentView setAutoresizingMask:self.autoresizingMask];
-    [_textContentView setDelegate:self];
+    [_textContentView setTextView:self];
     [self addSubview:_textContentView];
-    
-    _frame = NULL;
-    _framesetter = NULL;
     
 	_undoManager = [[NSUndoManager alloc] init];
 	
@@ -228,38 +193,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)dealloc {
-    [self clearPreviousLayoutInformation];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-- (void)clearPreviousLayoutInformation {
-    if (_framesetter != NULL) {
-        CFRelease(_framesetter);
-        _framesetter = NULL;
-    }
-    
-    if (_frame != NULL) {
-        CFRelease(_frame);
-        _frame = NULL;
-    }
-}
-
-- (dispatch_semaphore_t)drawLock {
-	if (!_drawLock) {
-		_drawLock = dispatch_semaphore_create(1);
-	}
-	
-	return _drawLock;
-}
-
-- (CGFloat)boundingWidthForHeight:(CGFloat)height {
-    CGSize suggestedSize = CTFramesetterSuggestFrameSizeWithConstraints(_framesetter, CFRangeMake(0, 0), NULL, CGSizeMake(CGFLOAT_MAX, height), NULL);
-    return suggestedSize.width;
-}
-
-- (CGFloat)boundingHeightForWidth:(CGFloat)width {
-    CGSize suggestedSize = CTFramesetterSuggestFrameSizeWithConstraints(_framesetter, CFRangeMake(0, 0), NULL, CGSizeMake(width, CGFLOAT_MAX), NULL);
-    return suggestedSize.height;
 }
 
 - (void)textChanged {
@@ -267,47 +201,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [[UIMenuController sharedMenuController] setMenuVisible:NO animated:NO];
     }
     
-    [self drawText];
-}
-
-- (void)drawText {
-	dispatch_semaphore_wait(self.drawLock, DISPATCH_TIME_FOREVER);
-    
-    [self clearPreviousLayoutInformation];
-	
-    _framesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)self.attributedString);
-    
-    CGRect theRect = CGRectInset(CGRectMake(0.0f, 0.0f, self.frame.size.width, self.frame.size.height), 6.0f, 15.0f);
-    CGFloat height = [self boundingHeightForWidth:theRect.size.width];
-    theRect.size.height = height+self.font.lineHeight;
-    _textContentView.frame = theRect;
-    self.contentSize = CGSizeMake(self.frame.size.width, theRect.size.height+(self.font.lineHeight*2));
-    
-    UIBezierPath *path = [UIBezierPath bezierPathWithRect:_textContentView.bounds];
-    
-    _frame =  CTFramesetterCreateFrame(_framesetter, CFRangeMake(0, 0), [path CGPath], NULL);
-    
-    for (UIView *view in _attachmentViews) {
-        [view removeFromSuperview];
-    }
-    [_attributedString enumerateAttribute:EGOTextAttachmentAttributeName
-								  inRange:NSMakeRange(0, [_attributedString length])
-								  options:0
-							   usingBlock: ^(id value, NSRange range, BOOL *stop) {
-								   if ([value respondsToSelector: @selector(attachmentView)]) {
-									   UIView *view = [value attachmentView];
-									   [_attachmentViews addObject: view];
-									   
-									   CGRect rect = [self firstRectForNSRange:range];
-									   rect.size = [view frame].size;
-									   [view setFrame: rect];
-									   [self addSubview: view];
-								   }
-							   }];
-    
-    [_textContentView setNeedsDisplay];
-    
-	dispatch_semaphore_signal(self.drawLock);
+    [_textContentView drawText];
 }
 
 - (NSString *)text {
@@ -336,6 +230,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	[self.inputDelegate textWillChange:self];
 	
 	[_undoManager removeAllActions];
+
 	if (_searchRanges) {
 		_searchRanges = nil;
 	}
@@ -346,7 +241,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (NSAttributedString *)attributedText {
-	return [_attributedString copy];
+	return _attributedString;
 }
 
 - (void)setAttributedString:(NSAttributedString *)string {
@@ -443,491 +338,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	[_textContentView setBackgroundColor:backgroundColor];
 }
 
-#pragma mark - Layout methods
-
-- (NSRange)rangeIntersection:(NSRange)first withSecond:(NSRange)second {
-    NSRange result = NSMakeRange(NSNotFound, 0);
-    
-    if (first.location > second.location) {
-        NSRange tmp = first;
-        first = second;
-        second = tmp;
-    }
-    
-    if (second.location < first.location + first.length) {
-        result.location = second.location;
-        NSUInteger end = MIN(first.location + first.length, second.location + second.length);
-        result.length = end - result.location;
-    }
-    
-    return result;
-}
-
-- (void)drawPathFromRects:(NSArray *)array cornerRadius:(CGFloat)cornerRadius {
-    if (!array || [array count] == 0) return;
-    
-    CGMutablePathRef _path = CGPathCreateMutable();
-    
-    CGRect firstRect = CGRectFromString([array objectAtIndex:0]);
-    CGRect lastRect = CGRectFromString([array lastObject]);
-    if ([array count] > 1) {
-        firstRect.size.width = _textContentView.bounds.size.width-firstRect.origin.x;
-    }
-    
-    if (cornerRadius > 0) {
-        CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:firstRect cornerRadius:cornerRadius].CGPath);
-        CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:lastRect cornerRadius:cornerRadius].CGPath);
-    } else {
-        CGPathAddRect(_path, NULL, firstRect);
-        CGPathAddRect(_path, NULL, lastRect);
-    }
-    
-    if ([array count] > 1) {
-		
-        CGRect fillRect = CGRectZero;
-        
-        CGFloat originX = ([array count] == 2) ? MIN(CGRectGetMinX(firstRect), CGRectGetMinX(lastRect)) : 0.0f;
-        CGFloat originY = firstRect.origin.y + firstRect.size.height;
-        CGFloat width = ([array count] == 2) ? originX + MIN(CGRectGetMaxX(firstRect), CGRectGetMaxX(lastRect)) : _textContentView.bounds.size.width;
-        CGFloat height =  MAX(0.0f, lastRect.origin.y - originY);
-        
-        fillRect = CGRectMake(originX, originY, width, height);
-        
-        if (cornerRadius > 0) {
-            CGPathAddPath(_path, NULL, [UIBezierPath bezierPathWithRoundedRect:fillRect cornerRadius:cornerRadius].CGPath);
-        } else {
-            CGPathAddRect(_path, NULL, fillRect);
-        }
-    }
-    
-    CGContextRef ctx = UIGraphicsGetCurrentContext();
-    CGContextAddPath(ctx, _path);
-    CGContextFillPath(ctx);
-    CGPathRelease(_path);
-}
-
-- (void)drawBoundingRangeAsSelection:(NSRange)selectionRange cornerRadius:(CGFloat)cornerRadius {
-    if (selectionRange.length == 0 || selectionRange.location == NSNotFound) {
-        return;
-    }
-    
-    NSMutableArray *pathRects = [[NSMutableArray alloc] init];
-    NSArray *lines = (__bridge NSArray*)CTFrameGetLines(_frame);
-    CGPoint *origins = (CGPoint*)malloc([lines count] * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, [lines count]), origins);
-    NSInteger count = [lines count];
-    
-    for (int i = 0; i < count; i++) {
-        CTLineRef line = (__bridge CTLineRef) [lines objectAtIndex:i];
-        CFRange lineRange = CTLineGetStringRange(line);
-        NSRange range = NSMakeRange(lineRange.location==kCFNotFound ? NSNotFound : lineRange.location, lineRange.length);
-        NSRange intersection = [self rangeIntersection:range withSecond:selectionRange];
-        
-        if (intersection.location != NSNotFound && intersection.length > 0) {
-            CGFloat xStart = CTLineGetOffsetForStringIndex(line, intersection.location, NULL);
-            CGFloat xEnd = CTLineGetOffsetForStringIndex(line, intersection.location + intersection.length, NULL);
-            
-            CGPoint origin = origins[i];
-            CGFloat ascent, descent;
-            CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-            
-            CGRect selectionRect = CGRectMake(origin.x + xStart, origin.y + ascent, xEnd - xStart, ascent + descent);
-			selectionRect.origin.y = _textContentView.frame.size.height - selectionRect.origin.y;
-            
-            if (range.length == 1) {
-                selectionRect.size.width = _textContentView.bounds.size.width;
-            }
-            
-            [pathRects addObject:NSStringFromCGRect(selectionRect)];
-        }
-    }
-    
-    [self drawPathFromRects:pathRects cornerRadius:cornerRadius];
-    free(origins);
-}
-
-- (void)drawContentInRect:(CGRect)rect {
-	if (_searchRanges && [_searchRanges count] > 0) {
-		[[UIColor colorWithRed:1.0f green:1.0f blue:0.0f alpha:1.0f] setFill];
-		for (int i = 0; i < [_searchRanges count]; i++) {
-			[self drawBoundingRangeAsSelection:((EGOIndexedRange *)[_searchRanges objectAtIndex:i]).range cornerRadius:2.0f];
-		}
-	}
-	
-    CGPathRef framePath = CTFrameGetPath(_frame);
-    CGRect frameRect = CGPathGetBoundingBox(framePath);
-	
-	NSArray *lines = (__bridge NSArray*)CTFrameGetLines(_frame);
-    NSInteger count = [lines count];
-	
-    CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-	CGContextRef ctx = UIGraphicsGetCurrentContext();
-	CGContextSaveGState(ctx);
-	CGContextSetTextMatrix(ctx, CGAffineTransformIdentity);
-    CGContextTranslateCTM(ctx, 0, _textContentView.frame.size.height);
-    CGContextScaleCTM(ctx, 1.0, -1.0);
-	for (int i = 0; i < count; i++) {
-        CTLineRef line = (CTLineRef)CFArrayGetValueAtIndex((CFArrayRef)lines, i);
-        CFArrayRef runs = CTLineGetGlyphRuns(line);
-        CFIndex runsCount = CFArrayGetCount(runs);
-        
-        if (self.drawDelegate) {
-            for (CFIndex runsIndex = 0; runsIndex < runsCount; runsIndex++) {
-                CTRunRef run = CFArrayGetValueAtIndex(runs, runsIndex);
-                [self.drawDelegate egoTextView:self drawBeforeGlyphRun:run forLine:line withOrigin:origins[i] inContext:ctx];
-            }
-        }
-        
-        CGContextSetTextPosition(ctx, frameRect.origin.x + origins[i].x, frameRect.origin.y + origins[i].y);
-        CTLineDraw(line, ctx);
-        
-        for (CFIndex runsIndex = 0; runsIndex < runsCount; runsIndex++) {
-            CTRunRef run = CFArrayGetValueAtIndex(runs, runsIndex);
-            
-            if (self.drawDelegate) {
-                [self.drawDelegate egoTextView:self drawAfterGlyphRun:run forLine:line withOrigin:origins[i] inContext:ctx];
-            }
-            
-            CFDictionaryRef attributes = CTRunGetAttributes(run);
-            id <EGOTextAttachmentCell> attachmentCell = [(__bridge id)attributes objectForKey:EGOTextAttachmentAttributeName];
-            if (attachmentCell && [attachmentCell respondsToSelector: @selector(attachmentSize)] && [attachmentCell respondsToSelector: @selector(attachmentDrawInRect:)]) {
-                CGPoint position;
-                CTRunGetPositions(run, CFRangeMake(0, 1), &position);
-                
-                CGSize size = [attachmentCell attachmentSize];
-                CGRect theRect = { { origins[i].x + position.x, origins[i].y + position.y }, size };
-                
-                UIGraphicsPushContext(UIGraphicsGetCurrentContext());
-                [attachmentCell attachmentDrawInRect: theRect];
-                UIGraphicsPopContext();
-            }
-            UIColor *spellCheckingColor = [(__bridge id)attributes objectForKey:EGOTextSpellCheckingColor];
-            if (spellCheckingColor) {
-                [self drawMispelledGlyphRun:run forLine:line withOrigin:origins[i] inContext:ctx color:spellCheckingColor];
-            }
-        }
-	}
-    free(origins);
-	CGContextRestoreGState(ctx);
-    
-    [[UIColor colorWithRed:0.8f green:0.8f blue:0.8f alpha:1.0f] setFill];
-    [self drawBoundingRangeAsSelection:_linkRange cornerRadius:2.0f];
-    [[EGOTextView selectionColor] setFill];
-    [self drawBoundingRangeAsSelection:self.selectedRange cornerRadius:0.0f];
-    [[EGOTextView spellingSelectionColor] setFill];
-    [self drawBoundingRangeAsSelection:self.correctionRange cornerRadius:2.0f];
-}
-
-- (void)drawMispelledGlyphRun:(CTRunRef)glyphRun forLine:(CTLineRef)line withOrigin:(CGPoint)origin inContext:(CGContextRef)context color:(UIColor *)strokeColor {
-    CGRect runBounds = CGRectZero;
-    CGFloat ascent = 0.0f;
-    CGFloat descent = 0.0f;
-    
-    CGContextSaveGState(context);
-    
-    runBounds = CTRunGetImageBounds(glyphRun, context, CFRangeMake(0, 0));
-    
-    runBounds.size.width = CTRunGetTypographicBounds(glyphRun, CFRangeMake(0, 0), &ascent, &descent, NULL);
-    CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-    runBounds.size.height = ascent + descent;
-    
-    CGFloat xOffset = CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(glyphRun).location, NULL);
-    runBounds.origin.x = origin.x + xOffset;
-    runBounds.origin.y = origin.y - descent/2;
-    
-    CGMutablePathRef path = CGPathCreateMutable();
-    CGPathMoveToPoint(path, NULL, runBounds.origin.x, runBounds.origin.y);
-    CGPathAddLineToPoint(path, NULL, runBounds.origin.x + runBounds.size.width, runBounds.origin.y);
-    
-    CGContextSetShouldAntialias(context, YES);
-    
-    CGFloat dotRadius = 2.0f;
-    CGFloat dashes[] = {0, dotRadius*2};
-    CGContextSetLineCap(context, kCGLineCapRound);
-    CGContextSetLineWidth(context, dotRadius);
-    CGContextSetLineDash(context, 0.0f, dashes, 2);
-	
-    CGContextSetStrokeColorWithColor(context, strokeColor.CGColor);
-    CGContextAddPath(context, path);
-    CGContextStrokePath(context);
-    CGPathRelease(path);
-    
-    CGContextRestoreGState(context);
-}
-
-- (NSInteger)closestWhiteSpaceIndexToPoint:(CGPoint)point {
-    point = [self convertPoint:point toView:_textContentView];
-	point.y = _textContentView.frame.size.height - point.y;
-	
-    NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    NSInteger count = [lines count];
-    CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-    
-    __block NSRange returnRange = NSMakeRange(_attributedString.length, 0);
-    
-    for (int i = 0; i < lines.count; i++) {
-        if (point.y > origins[i].y) {
-            CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
-            CFRange cfRange = CTLineGetStringRange(line);
-            NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
-            CGPoint convertedPoint = CGPointMake(point.x - origins[i].x, point.y - origins[i].y);
-            CFIndex cfIndex = CTLineGetStringIndexForPosition(line, convertedPoint);
-            NSInteger theIndex = (cfIndex == kCFNotFound ? NSNotFound : cfIndex);
-			
-            if(range.location == NSNotFound) {
-                break;
-			}
-            
-            if (theIndex >=_attributedString.length) {
-                returnRange = NSMakeRange(_attributedString.length, 0);
-                break;
-            }
-            
-            if (range.length <= 1) {
-                returnRange = NSMakeRange(range.location, 0);
-                break;
-            }
-            
-            if (theIndex == range.location) {
-                returnRange = NSMakeRange(range.location, 0);
-                break;
-            }
-			
-            if (theIndex >= (range.location+range.length)) {
-                if (range.length > 1 && [_attributedString.string characterAtIndex:(range.location+range.length)-1] == '\n') {
-                    returnRange = NSMakeRange(theIndex - 1, 0);
-                    break;
-                } else {
-                    returnRange = NSMakeRange(range.location+range.length, 0);
-                    break;
-                }
-            }
-            
-            [_attributedString.string enumerateSubstringsInRange:range
-														 options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
-													  usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
-														  if (NSLocationInRange(theIndex, enclosingRange)) {
-															  if (theIndex > (enclosingRange.location+(enclosingRange.length/2))) {
-																  returnRange = NSMakeRange(subStringRange.location+subStringRange.length, 0);
-															  } else {
-																  returnRange = NSMakeRange(subStringRange.location, 0);
-															  }
-															  *stop = YES;
-														  }
-													  }];
-            break;
-            
-        }
-    }
-    
-    free(origins);
-    return returnRange.location;
-}
-
-- (NSInteger)closestIndexToPoint:(CGPoint)point {
-    point = [self convertPoint:point toView:_textContentView];
-	point.y = _textContentView.frame.size.height - point.y;
-	
-    NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    NSInteger count = [lines count];
-    CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-    CFIndex index = kCFNotFound;
-    
-    for (int i = 0; i < lines.count; i++) {
-        if (point.y > origins[i].y) {
-            CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
-            CGPoint convertedPoint = CGPointMake(point.x - origins[i].x, point.y - origins[i].y);
-            index = CTLineGetStringIndexForPosition(line, convertedPoint);
-			CFRange lineRange = CTLineGetStringRange(line);
-			if (index != kCFNotFound && index == lineRange.location + lineRange.length) {
-				index = index - 1;
-			}
-            break;
-        }
-    }
-    
-    if (index == kCFNotFound) {
-        index = [_attributedString length];
-    }
-    
-    free(origins);
-    return index;
-}
-
-- (NSRange)characterRangeAtPoint_:(CGPoint)point {
-	point.y = _textContentView.frame.size.height - point.y;
-	
-	__block NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    CGPoint *origins = (CGPoint *)malloc([lines count] * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, [lines count]), origins);
-    __block NSRange returnRange = NSMakeRange(NSNotFound, 0);
-	
-    for (int i = 0; i < lines.count; i++) {
-        if (point.y > origins[i].y) {
-            __block CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
-            CGPoint convertedPoint = CGPointMake(point.x - origins[i].x, point.y - origins[i].y);
-            NSInteger index = CTLineGetStringIndexForPosition(line, convertedPoint);
-            CFRange cfRange = CTLineGetStringRange(line);
-            NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
-            [_attributedString.string enumerateSubstringsInRange:range
-														 options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
-													  usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop){
-														  if (NSLocationInRange(index, subStringRange)) {
-                                                              returnRange = subStringRange;
-                                                              *stop = YES;
-                                                          } else if (NSLocationInRange(index, enclosingRange)) {
-                                                              returnRange = enclosingRange;
-                                                              *stop = YES;
-                                                          }
-													  }];
-            break;
-        }
-    }
-	
-    free(origins);
-    return returnRange;
-}
-
-- (NSRange)characterRangeAtIndex:(NSInteger)inIndex {
-    __block NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    NSInteger count = [lines count];
-    __block NSRange returnRange = NSMakeRange(NSNotFound, 0);
-    
-    for (int i = 0; i < count; i++) {
-        __block CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
-        CFRange cfRange = CTLineGetStringRange(line);
-        NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length == kCFNotFound ? 0 : cfRange.length);
-        
-        if (inIndex >= range.location && inIndex <= range.location+range.length && range.length > 1) {
-            returnRange = range;
-            [_attributedString.string enumerateSubstringsInRange:range
-                                                         options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
-                                                      usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
-                                                          if (NSLocationInRange(inIndex, subStringRange)) {
-                                                              returnRange = subStringRange;
-                                                              *stop = YES;
-                                                          } else if (NSLocationInRange(inIndex, enclosingRange)) {
-                                                              returnRange = enclosingRange;
-                                                              *stop = YES;
-                                                          }
-                                                      }];
-			break;
-        }
-    }
-    return returnRange;
-}
-
-- (CGRect)caretRectForIndex:(NSInteger)inIndex {
-    CGFloat caretWidth = 3.0f;
-    
-    NSArray *lines = (__bridge NSArray *)CTFrameGetLines(_frame);
-    
-    // no text / first index
-    if (_attributedString.length == 0 || inIndex == 0) {
-        CGPoint origin = CGPointMake(CGRectGetMinX(_textContentView.bounds), CGRectGetMaxY(_textContentView.bounds) - self.font.leading);
-        return CGRectMake(origin.x, _textContentView.frame.size.height - origin.y - (self.font.ascender + fabs(self.font.descender)), caretWidth, self.font.ascender + fabs(self.font.descender));
-    }
-	
-    // last index is newline
-    if (inIndex == _attributedString.length && [_attributedString.string characterAtIndex:(inIndex - 1)] == '\n' ) {
-        CTLineRef line = (__bridge CTLineRef)[lines lastObject];
-        CFRange range = CTLineGetStringRange(line);
-        CGFloat xPos = CTLineGetOffsetForStringIndex(line, range.location, NULL);
-        CGFloat ascent, descent;
-        CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-		
-        CGPoint origin;
-        CGPoint *origins = (CGPoint *)malloc(1 * sizeof(CGPoint));
-        CTFrameGetLineOrigins(_frame, CFRangeMake([lines count]-1, 0), origins);
-        origin = origins[0];
-        free(origins);
-        
-        origin.y -= self.font.leading;
-		CGRect returnRect = CGRectMake(origin.x + xPos, floorf(origin.y + ascent), caretWidth, ceilf(descent + ascent));
-		returnRect.origin.y = _textContentView.frame.size.height - returnRect.origin.y;
-        return returnRect;
-    }
-	
-    inIndex = MAX(inIndex, 0);
-    inIndex = MIN(_attributedString.string.length, inIndex);
-	
-    NSInteger count = [lines count];
-    CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-    CGRect returnRect = CGRectZero;
-	
-    for (int i = 0; i < count; i++) {
-		
-        CTLineRef line = (__bridge CTLineRef)[lines objectAtIndex:i];
-        CFRange cfRange = CTLineGetStringRange(line);
-        NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length);
-		
-        if (inIndex >= range.location && inIndex <= range.location+range.length) {
-			
-            CGFloat ascent, descent, xPos;
-            xPos = CTLineGetOffsetForStringIndex((__bridge CTLineRef)[lines objectAtIndex:i], inIndex, NULL);
-            CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-            CGPoint origin = origins[i];
-			
-            if (_selectedRange.length > 0 && inIndex != _selectedRange.location && range.length == 1) {
-                
-                xPos = _textContentView.bounds.size.width - caretWidth; // selection of entire line
-                
-            } else if ([_attributedString.string characterAtIndex:inIndex-1] == '\n' && range.length == 1) {
-				
-                xPos = 0.0f; // empty line
-				
-            }
-            
-            returnRect = CGRectMake(origin.x + xPos - caretWidth/2, floorf(origin.y + ascent), caretWidth, ceilf(descent + ascent));
-			returnRect.origin.y = _textContentView.frame.size.height - returnRect.origin.y;
-        }
-        
-    }
-    
-    free(origins);
-    return returnRect;
-}
-
-- (CGRect)firstRectForNSRange:(NSRange)range{
-    NSInteger theIndex = range.location;
-	
-    NSArray *lines = (__bridge NSArray *) CTFrameGetLines(_frame);
-    NSInteger count = [lines count];
-    CGPoint *origins = (CGPoint *)malloc(count * sizeof(CGPoint));
-    CTFrameGetLineOrigins(_frame, CFRangeMake(0, count), origins);
-    CGRect returnRect = CGRectNull;
-    
-    for (int i = 0; i < count; i++) {
-        
-        CTLineRef line = (__bridge CTLineRef) [lines objectAtIndex:i];
-        CFRange lineRange = CTLineGetStringRange(line);
-        NSInteger localIndex = theIndex - lineRange.location;
-		
-        if (localIndex >= 0 && localIndex < lineRange.length) {
-            
-            NSInteger finalIndex = MIN(lineRange.location + lineRange.length, range.location + range.length);
-            CGFloat xStart = CTLineGetOffsetForStringIndex(line, theIndex, NULL);
-            CGFloat xEnd = CTLineGetOffsetForStringIndex(line, finalIndex, NULL);
-            CGPoint origin = origins[i];
-            CGFloat ascent, descent;
-            CTLineGetTypographicBounds(line, &ascent, &descent, NULL);
-            
-            returnRect = CGRectMake(origin.x + xStart, _textContentView.frame.size.height - origin.y - ascent, xEnd - xStart, ascent + descent);
-			
-            break;
-        }
-    }
-	
-    free(origins);
-    return CGRectIntegral(returnRect);
-}
-
 - (void)scrollToTextRange:(NSRange)range {
-    CGRect rect = [self caretRectForIndex:range.location];
+    CGRect rect = [_textContentView caretRectForIndex:range.location];
     [self scrollRectToVisible:[_textContentView convertRect:rect toView:self] animated:YES];
 }
 
@@ -977,7 +389,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             [_textContentView setNeedsDisplay];
         }
         
-        [_caretView setFrame:[self caretRectForIndex:self.selectedRange.location]];
+        [_caretView setFrame:[_textContentView caretRectForIndex:self.selectedRange.location]];
         [_caretView delayBlink];
         
         CGRect frame = _caretView.frame;
@@ -1003,8 +415,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             
         }
         
-        CGRect begin = [self caretRectForIndex:_selectedRange.location];
-        CGRect end   = [self caretRectForIndex:_selectedRange.location+_selectedRange.length];
+        CGRect begin = [_textContentView caretRectForIndex:_selectedRange.location];
+        CGRect end   = [_textContentView caretRectForIndex:_selectedRange.location+_selectedRange.length];
         [_selectionView setBeginCaret:begin endCaret:end];
         [_textContentView setNeedsDisplay];
     }
@@ -1016,14 +428,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidChangeSelection:)]) {
 		[self.delegate egoTextViewDidChangeSelection:self];
 	}
-}
-
-- (NSRange)markedRange {
-    return _markedRange;
-}
-
-- (NSRange)selectedRange {
-    return _selectedRange;
 }
 
 - (void)setMarkedRange:(NSRange)range {
@@ -1085,7 +489,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         }
     } else if (!_caretView.superview) {
 		[_textContentView addSubview:_caretView];
-		_caretView.frame = [self caretRectForIndex:self.selectedRange.location];
+		_caretView.frame = [_textContentView caretRectForIndex:self.selectedRange.location];
 		[_caretView delayBlink];
     }
     
@@ -1146,7 +550,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     if ((r.range.location + r.range.length) <= selectedNSRange.location) {
         selectedNSRange.location -= (r.range.length - text.length);
     } else {
-        selectedNSRange = [self rangeIntersection:r.range withSecond:_selectedRange];
+        selectedNSRange = NSIntersectionRange(r.range, _selectedRange);
     }
     
     [_mutableAttributedString replaceCharactersInRange:r.range withString:text];
@@ -1239,62 +643,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (UITextPosition *)positionFromPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset {
     EGOIndexedPosition *pos = (EGOIndexedPosition *)position;
-    NSInteger newPos = pos.positionIndex;
-    
-    switch (direction) {
-        case UITextLayoutDirectionRight:
-            newPos += offset;
-            break;
-        case UITextLayoutDirectionLeft:
-            newPos -= offset;
-            break;
-        case UITextLayoutDirectionUp: {
-            // Iterate through lines to find the one which contains the position given
-            CFArrayRef lines = CTFrameGetLines(_frame);
-            for (NSInteger i = 0; i < CFArrayGetCount(lines); i++) {
-                CTLineRef line = CFArrayGetValueAtIndex(lines, i);
-                CFRange lineRange = CTLineGetStringRange(line);
-                if (lineRange.location <= newPos && newPos <= (lineRange.location + lineRange.length)) {
-                    // Current line was found : calculate the new position
-                    if ( line && (i - offset) >= 0) {
-                        CGFloat xOffsetToPosition = CTLineGetOffsetForStringIndex(line, newPos, NULL);
-                        newPos = CTLineGetStringIndexForPosition(CFArrayGetValueAtIndex(lines, i - offset),
-                                                                 CGPointMake(xOffsetToPosition, 0.0f));
-                    } else {
-                        newPos = 0;
-                    }
-                    break;
-                }
-            }
-        } break;
-        case UITextLayoutDirectionDown: {
-            // Iterate through lines to find the one which contains the position given
-            CFArrayRef lines = CTFrameGetLines(_frame);
-            for (NSUInteger i = 0; i < CFArrayGetCount(lines); i++) {
-                CTLineRef line = CFArrayGetValueAtIndex(lines, i);
-                CFRange lineRange = CTLineGetStringRange(line);
-                if (lineRange.location <= newPos && newPos <= lineRange.location + lineRange.length) {
-                    // Current line was found : calculate the new position
-                    if (line && (i + offset) < CFArrayGetCount(lines)) {
-                        CGFloat xOffsetToPosition = CTLineGetOffsetForStringIndex(line, newPos, NULL);
-                        newPos = CTLineGetStringIndexForPosition(CFArrayGetValueAtIndex(lines, i + offset),
-                                                                 CGPointMake(xOffsetToPosition, 0.0f));
-                    } else {
-                        newPos = _attributedString.length;
-                    }
-                    break;
-                }
-            }
-        } break;
-        default:
-            break;
-    }
-	
-    if (newPos < 0)
-        newPos = 0;
-    
-    if (newPos > _attributedString.length)
-        newPos = _attributedString.length;
+    NSInteger newPos = [_textContentView positionFromPosition:pos.positionIndex inDirection:direction offset:offset];
+
+    newPos = (newPos == NSNotFound ? _attributedString.length : MAX(MIN(newPos, _attributedString.length), 0));
     
     return [EGOIndexedPosition positionWithIndex:newPos];
 }
@@ -1351,7 +702,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (UITextRange *)characterRangeByExtendingPosition:(UITextPosition *)position inDirection:(UITextLayoutDirection)direction {
-	
     EGOIndexedPosition *pos = (EGOIndexedPosition *)position;
     NSRange result;
     
@@ -1387,13 +737,13 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         return CGRectZero;
     }
     EGOIndexedRange *r = (EGOIndexedRange *)range;
-    CGRect rect = [self firstRectForNSRange:r.range];
+    CGRect rect = [_textContentView firstRectForNSRange:r.range];
     return rect;
 }
 
 - (CGRect)caretRectForPosition:(UITextPosition *)position {
     EGOIndexedPosition *pos = (EGOIndexedPosition *)position;
-	CGRect rect = [self caretRectForIndex:pos.positionIndex];
+	CGRect rect = [_textContentView caretRectForIndex:pos.positionIndex];
 	return rect;
 }
 
@@ -1408,17 +758,17 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 #pragma mark - UITextInput - Hit testing
 
 - (UITextPosition *)closestPositionToPoint:(CGPoint)point {
-    EGOIndexedPosition *position = [EGOIndexedPosition positionWithIndex:[self closestIndexToPoint:point]];
+    EGOIndexedPosition *position = [EGOIndexedPosition positionWithIndex:[_textContentView closestIndexToPoint:point fromView:self]];
     return position;
 }
 
 - (UITextPosition *)closestPositionToPoint:(CGPoint)point withinRange:(UITextRange *)range {
-    EGOIndexedPosition *position = [EGOIndexedPosition positionWithIndex:[self closestIndexToPoint:point]];
+    EGOIndexedPosition *position = [EGOIndexedPosition positionWithIndex:[_textContentView closestIndexToPoint:point fromView:self]];
     return position;
 }
 
 - (UITextRange *)characterRangeAtPoint:(CGPoint)point {
-    EGOIndexedRange *range = [EGOIndexedRange rangeWithNSRange:[self characterRangeAtPoint_:point]];
+    EGOIndexedRange *range = [EGOIndexedRange rangeWithNSRange:[_textContentView characterRangeAtPoint:point]];
     return range;
 }
 
@@ -1526,7 +876,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		selectedNSRange.location += text.length;
         
         if (text.length == 1 && ![[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
-            [_mutableAttributedString removeAttribute:EGOTextSpellCheckingColor range:[self characterRangeAtIndex:selectedNSRange.location]];
+            [_mutableAttributedString removeAttribute:EGOTextSpellCheckingColor range:[_textContentView characterRangeAtIndex:selectedNSRange.location]];
         }
         
     }
@@ -1537,10 +887,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	
     if (text.length > 1 || [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
         if (text.length == 1) {
-            [self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location-1]];
+            [self checkSpellingForRange:[_textContentView characterRangeAtIndex:self.selectedRange.location-1]];
         } else {
-            NSRange startRange = [self characterRangeAtIndex:self.selectedRange.location - text.length + 1];;
-            NSRange endRange = [self characterRangeAtIndex:self.selectedRange.location - 1];
+            NSRange startRange = [_textContentView characterRangeAtIndex:self.selectedRange.location - text.length + 1];;
+            NSRange endRange = [_textContentView characterRangeAtIndex:self.selectedRange.location - 1];
             
             [self checkSpellingForRange:NSUnionRange(startRange, endRange)];
         }
@@ -1692,7 +1042,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 #pragma mark - Data Detectors (links)
 
 - (NSTextCheckingResult *)linkAtIndex:(NSInteger)index {
-    NSRange range = [self characterRangeAtIndex:index];
+    NSRange range = [_textContentView characterRangeAtIndex:index];
     if (range.location==NSNotFound || range.length == 0) {
         return nil;
     }
@@ -1931,7 +1281,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [_textWindow setType:_selection ? EGOWindowMagnify : EGOWindowLoupe];
 		
         point.y -= 20.0f;
-        NSInteger index = [self closestIndexToPoint:point];
+        NSInteger index = [_textContentView closestIndexToPoint:point fromView:self];
         
         if (_selection) {
             
@@ -1956,7 +1306,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
                 index = (_selectedRange.location+_selectedRange.length);
             }
             
-            rect = [self caretRectForIndex:index];
+            rect = [_textContentView caretRectForIndex:index];
             if (gesture.state == UIGestureRecognizerStateBegan) {
                 [_textWindow showFromView:_textContentView rect:[_textContentView convertRect:rect toView:_textWindow]];
             } else {
@@ -2005,8 +1355,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showMenu) object:nil];
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showCorrectionMenu) object:nil];
 	
-    NSInteger index = [self closestWhiteSpaceIndexToPoint:[gesture locationInView:self]];
-    NSRange range = [self characterRangeAtIndex:index];
+    NSInteger index = [_textContentView closestWhiteSpaceIndexToPoint:[gesture locationInView:self] fromView:self];
+    NSRange range = [_textContentView characterRangeAtIndex:index];
     if (range.location != NSNotFound && range.length > 0) {
         
         [self.inputDelegate selectionWillChange:self];
@@ -2024,12 +1374,12 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         _typingAttributes = nil;
     }
 	
-    if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextView:tappedAtIndex:)] && ![self.delegate egoTextView:self tappedAtIndex:[self closestIndexToPoint:[gesture locationInView:self]]]) {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextView:tappedAtIndex:)] && ![self.delegate egoTextView:self tappedAtIndex:[_textContentView closestIndexToPoint:[gesture locationInView:self] fromView:self]]) {
         return;
     }
     
     if (_editable && ![self isFirstResponder]) {
-        NSInteger index = [self closestWhiteSpaceIndexToPoint:[gesture locationInView:self]];
+        NSInteger index = [_textContentView closestWhiteSpaceIndexToPoint:[gesture locationInView:self] fromView:self];
         
         [self.inputDelegate selectionWillChange:self];
         
@@ -2053,10 +1403,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     if (self.selectedRange.length > 0) {
         self.selectedRange = NSMakeRange(_selectedRange.location, 0);
     } else if (self.selectedRange.location != NSNotFound) {
-		[self checkSpellingForRange:[self characterRangeAtIndex:self.selectedRange.location]];
+		[self checkSpellingForRange:[_textContentView characterRangeAtIndex:self.selectedRange.location]];
 	}
     
-    NSInteger index = [self closestWhiteSpaceIndexToPoint:[gesture locationInView:self]];
+    NSInteger index = [_textContentView closestWhiteSpaceIndexToPoint:[gesture locationInView:self] fromView:self];
     
     if (!_editing && [self selectedLinkAtIndex:index] && self.delegate && [self.delegate respondsToSelector:@selector(egoTextView:didSelectURL:)]) {
 		return;
@@ -2193,10 +1543,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         if (_selectionView) {
             rect = [_textContentView convertRect:_selectionView.frame toView:self];
         } else {
-            rect = [_textContentView convertRect:[self firstRectForNSRange:_selectedRange] toView:self];
+            rect = [_textContentView convertRect:[_textContentView firstRectForNSRange:_selectedRange] toView:self];
         }
     } else if (_editing && _correctionRange.location != NSNotFound && _correctionRange.length > 0) {
-        rect = [_textContentView convertRect:[self firstRectForNSRange:_correctionRange] toView:self];
+        rect = [_textContentView convertRect:[_textContentView firstRectForNSRange:_correctionRange] toView:self];
     }
 	
     return rect;
@@ -2229,7 +1579,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)showCorrectionMenu {
     if (_editing) {
-        NSRange range = [self characterRangeAtIndex:self.selectedRange.location];
+        NSRange range = [_textContentView characterRangeAtIndex:self.selectedRange.location];
         if (range.location!=NSNotFound && range.length>1) {
             
 			NSString *language = [[NSLocale currentLocale] localeIdentifier];
@@ -2247,7 +1597,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)showCorrectionMenuWithoutSelection {
     if (_editing) {
-        NSRange range = [self characterRangeAtIndex:self.selectedRange.location];
+        NSRange range = [_textContentView characterRangeAtIndex:self.selectedRange.location];
         [self showCorrectionMenuForRange:range];
     } else {
         [self showMenu];
@@ -2353,7 +1703,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSRange replacementRange = _correctionRange;
     
     if (replacementRange.location == NSNotFound || replacementRange.length == 0) {
-        replacementRange = [self characterRangeAtIndex:self.selectedRange.location];
+        replacementRange = [_textContentView characterRangeAtIndex:self.selectedRange.location];
     }
     if (replacementRange.location != NSNotFound && replacementRange.length != 0) {
         NSString *text = [self.menuItemActions objectForKey:NSStringFromSelector(_cmd)];
@@ -2398,7 +1748,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)_select:(id)sender {
-    NSRange range = [self characterRangeAtPoint_:_caretView.center];
+    NSRange range = [_textContentView characterRangeAtPoint:_caretView.center];
     self.selectedRange = range;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(menuDidHide:) name:UIMenuControllerDidHideMenuNotification object:nil];
@@ -2411,7 +1761,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)_copy:(id)sender {
     NSString *string = [self.attributedString.string substringWithRange:_selectedRange];
-    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:(NSString*)kUTTypeUTF8PlainText];
+    [[UIPasteboard generalPasteboard] setValue:string forPasteboardType:(NSString *)kUTTypeUTF8PlainText];
 }
 
 - (void)_delete:(id)sender {
