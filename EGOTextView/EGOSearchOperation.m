@@ -1,7 +1,8 @@
 //
 //  EGOSearchOperation.m
 //
-//  Created by Tommaso Madonia on 05/02/13.
+//  Created by Devin Doty on 4/18/11.
+//  Copyright (C) 2011 by enormego.
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal

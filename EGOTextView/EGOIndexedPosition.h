@@ -25,10 +25,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface EGOIndexedPosition : UITextPosition {
-    NSUInteger               _positionIndex;
-    id <UITextInputDelegate> _inputDelegate;
-}
+@interface EGOIndexedPosition : UITextPosition
 
 @property (nonatomic) NSUInteger positionIndex;
 

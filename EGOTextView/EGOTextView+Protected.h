@@ -1,5 +1,5 @@
 //
-//  EGOTextView.h
+//  EGOTextView+Protected.h
 //
 //  Created by Devin Doty on 4/18/11.
 //  Copyright (C) 2011 by enormego.
@@ -28,5 +28,7 @@
 @property (nonatomic, assign) NSRange linkRange;
 @property (nonatomic, copy) NSArray *searchRanges;
 @property (nonatomic, copy) NSMutableArray *attachmentViews;
+@property (nonatomic, strong) NSMutableAttributedString *attributedString;
+@property (nonatomic, strong) NSMutableSet *correctionRanges;
 
 @end

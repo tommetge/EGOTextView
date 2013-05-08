@@ -1,5 +1,5 @@
 //
-//  EGOSearchOperation.h
+//  EGOTextLine.h
 //
 //  Created by Devin Doty on 4/18/11.
 //  Copyright (C) 2011 by enormego.
@@ -24,15 +24,18 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreText/CoreText.h>
 
-@protocol EGOSearchDelegate <NSObject>
+@interface EGOTextLine : NSObject
 
-- (void)searchDidComplete:(NSArray *)searchRange;
+@property (nonatomic, assign) CTLineRef rawLine;
+@property (nonatomic, readonly) CGFloat ascent;
+@property (nonatomic, readonly) CGFloat descent;
+@property (nonatomic, readonly) CGFloat leading;
+@property (nonatomic, assign) CGPoint origin;
+@property (nonatomic, assign) NSInteger index;
+@property (nonatomic, readonly) NSArray *runsArray;
 
-@end
-
-@interface EGOSearchOperation : NSOperation
-
-- (id)initWithDelegate:(id<EGOSearchDelegate>)delegate searchWord:(NSString *)word inText:(NSString *)text;
+- (id)initWithCTLine:(CTLineRef)line;
 
 @end

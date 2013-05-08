@@ -27,6 +27,8 @@
 		03FF5EFD135CA6B200268656 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03FF5EFC135CA6B200268656 /* CoreText.framework */; };
 		1809888A1706EA540005DF0B /* EGOTextView.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1809888C1706EA540005DF0B /* EGOTextView.strings */; };
 		1809888F1706EEDF0005DF0B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1809888E1706EEDF0005DF0B /* Default-568h@2x.png */; };
+		180C67291736D3E2006FC370 /* EGOTextLine.m in Sources */ = {isa = PBXBuildFile; fileRef = 180C67281736D3E2006FC370 /* EGOTextLine.m */; };
+		1819E40A1739396200C0E0F3 /* drag-dot.png in Resources */ = {isa = PBXBuildFile; fileRef = 1819E4091739396200C0E0F3 /* drag-dot.png */; };
 		189464591704A44500B8A785 /* EGOCaretView.m in Sources */ = {isa = PBXBuildFile; fileRef = 189464481704A44500B8A785 /* EGOCaretView.m */; };
 		1894645A1704A44500B8A785 /* EGOContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644A1704A44500B8A785 /* EGOContentView.m */; };
 		1894645B1704A44500B8A785 /* EGOIndexedPosition.m in Sources */ = {isa = PBXBuildFile; fileRef = 1894644C1704A44500B8A785 /* EGOIndexedPosition.m */; };
@@ -71,6 +73,10 @@
 		1809888B1706EA540005DF0B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/EGOTextView.strings; sourceTree = "<group>"; };
 		1809888D1706EA650005DF0B /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/EGOTextView.strings; sourceTree = "<group>"; };
 		1809888E1706EEDF0005DF0B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
+		180C67261736D3CB006FC370 /* EGOTextView+Protected.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "EGOTextView+Protected.h"; sourceTree = "<group>"; };
+		180C67271736D3E2006FC370 /* EGOTextLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOTextLine.h; sourceTree = "<group>"; };
+		180C67281736D3E2006FC370 /* EGOTextLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOTextLine.m; sourceTree = "<group>"; };
+		1819E4091739396200C0E0F3 /* drag-dot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "drag-dot.png"; sourceTree = "<group>"; };
 		189464471704A44500B8A785 /* EGOCaretView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOCaretView.h; sourceTree = "<group>"; };
 		189464481704A44500B8A785 /* EGOCaretView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EGOCaretView.m; sourceTree = "<group>"; };
 		189464491704A44500B8A785 /* EGOContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EGOContentView.h; sourceTree = "<group>"; };
@@ -126,6 +132,7 @@
 				03644E8F13611C720015EC74 /* magnifier-ranged-lo-stemless@2x.png */,
 				03644E9013611C720015EC74 /* magnifier-ranged-lo@2x.png */,
 				03644E9113611C720015EC74 /* magnifier-ranged-mask@2x.png */,
+				1819E4091739396200C0E0F3 /* drag-dot.png */,
 				03C94661135E90E000EF024B /* drag-dot@2x.png */,
 				189464621704A57400B8A785 /* LoupeOverlay.png */,
 				189464631704A57400B8A785 /* LoupeOverlay@2x.png */,
@@ -212,10 +219,13 @@
 				189464541704A44500B8A785 /* EGOSearchOperation.m */,
 				189464551704A44500B8A785 /* EGOSelectionView.h */,
 				189464561704A44500B8A785 /* EGOSelectionView.m */,
+				180C67271736D3E2006FC370 /* EGOTextLine.h */,
+				180C67281736D3E2006FC370 /* EGOTextLine.m */,
 				189464571704A44500B8A785 /* EGOTextWindow.h */,
 				189464581704A44500B8A785 /* EGOTextWindow.m */,
 				03FF5EEC135CA4DA00268656 /* EGOTextView.h */,
 				03FF5EED135CA4DA00268656 /* EGOTextView.m */,
+				180C67261736D3CB006FC370 /* EGOTextView+Protected.h */,
 			);
 			path = EGOTextView;
 			sourceTree = "<group>";
@@ -286,6 +296,7 @@
 				189464651704A57400B8A785 /* LoupeOverlay@2x.png in Resources */,
 				1809888A1706EA540005DF0B /* EGOTextView.strings in Resources */,
 				1809888F1706EEDF0005DF0B /* Default-568h@2x.png in Resources */,
+				1819E40A1739396200C0E0F3 /* drag-dot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -309,6 +320,7 @@
 				1894645F1704A44500B8A785 /* EGOSearchOperation.m in Sources */,
 				189464601704A44500B8A785 /* EGOSelectionView.m in Sources */,
 				189464611704A44500B8A785 /* EGOTextWindow.m in Sources */,
+				180C67291736D3E2006FC370 /* EGOTextLine.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,7 +386,7 @@
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -388,7 +400,7 @@
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 			};

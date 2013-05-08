@@ -32,12 +32,14 @@
 
 - (void)drawText;
 
-- (NSRange)characterRangeAtPoint:(CGPoint)point;
 - (NSRange)characterRangeAtIndex:(NSInteger)inIndex;
+- (NSRange)characterRangeAtPoint:(CGPoint)point fromView:(UIView *)sourceView;
 - (NSInteger)closestIndexToPoint:(CGPoint)point fromView:(UIView *)sourceView;
 - (NSInteger)closestWhiteSpaceIndexToPoint:(CGPoint)point fromView:(UIView *)sourceView;
 - (CGRect)caretRectForIndex:(NSInteger)inIndex;
 - (CGRect)firstRectForNSRange:(NSRange)range;
+- (CGRect)lastRectForNSRange:(NSRange)range;
+- (CGRect)rectForNSRange:(NSRange)range;
 - (NSInteger *)positionFromPosition:(NSInteger)position inDirection:(UITextLayoutDirection)direction offset:(NSInteger)offset;
 
 @end

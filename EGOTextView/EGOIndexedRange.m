@@ -44,8 +44,33 @@
 	return [EGOIndexedPosition positionWithIndex:(self.range.location + self.range.length)];
 }
 
--(BOOL)isEmpty {
+- (BOOL)isEmpty {
     return (self.range.length == 0);
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+    id copy = [[[self class] allocWithZone:zone] init];
+    
+    if (copy) {
+		[copy setRange:self.range];
+    }
+	
+    return copy;
+}
+
+- (BOOL)isEqual:(id)object {
+	if ([object isKindOfClass:[EGOIndexedRange class]]) {
+        return NSEqualRanges([((EGOIndexedRange *)object) range], self.range);
+	}
+	return NO;
+}
+
+- (NSUInteger)hash {
+	return [NSStringFromRange(self.range) hash];
+}
+
+- (NSString *)description {
+    return NSStringFromRange(self.range);
 }
 
 @end

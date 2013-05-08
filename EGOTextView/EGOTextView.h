@@ -21,13 +21,13 @@
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
+//
 
 #import <UIKit/UIKit.h>
 #import <CoreText/CoreText.h>
 #import <UIKit/UITextChecker.h>
 #import "EGOSearchOperation.h"
 
-extern NSString * const EGOTextSearch;
 extern NSString * const EGOTextSpellCheckingColor;
 extern NSString * const EGOTextAttachmentAttributeName;
 extern NSString * const EGOTextAttachmentPlaceholderString;
@@ -69,9 +69,11 @@ extern NSString * const EGOTextViewLocalizationTable;
 @property (nonatomic, assign) BOOL enablesReturnKeyAutomatically;
 
 @property (nonatomic, strong) NSDictionary *localizedStrings;
+@property (nonatomic, strong) NSString *language;
 
 @property (nonatomic, strong) NSDictionary *defaultAttributes;
 @property (nonatomic, copy)   NSDictionary *typingAttributes;
+@property (nonatomic, copy)   NSDictionary *correctionAttributes;
 
 @property (nonatomic, strong, readonly) NSUndoManager *undoManager;
 
@@ -79,14 +81,13 @@ extern NSString * const EGOTextViewLocalizationTable;
 @property (nonatomic, weak) id <EGOTextViewDrawDelegate> drawDelegate;
 @property (nonatomic, copy) NSAttributedString *attributedText;
 @property (nonatomic, copy) NSString *text;
+@property (nonatomic, readonly) NSUInteger textLength;
 @property (nonatomic, strong) UIFont *font; // ignored when attributedString is not nil
 @property (nonatomic, assign, getter = isEditable) BOOL editable; //default YES
 @property (nonatomic, assign, readonly) BOOL hasText;
 @property (nonatomic, assign, readonly) CGRect contentFrame;
 @property (nonatomic, assign) NSRange selectedRange;
 @property (nonatomic, assign) NSRange markedRange;
-
-@property (nonatomic, strong) NSString *language;
 
 - (void)checkSpelling;
 - (void)scrollToTextRange:(NSRange)range;

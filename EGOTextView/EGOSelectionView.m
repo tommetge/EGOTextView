@@ -34,7 +34,7 @@
     if (self) {
         [self setBackgroundColor:[UIColor clearColor]];
         [self setUserInteractionEnabled:NO];
-        [self.layer setGeometryFlipped:NO];
+        [[self layer] setGeometryFlipped:NO];
     }
 	
     return self;
@@ -43,19 +43,23 @@
 - (void)setBeginCaret:(CGRect)begin endCaret:(CGRect)end {
     if (!self.superview) return;
     
-    self.frame = CGRectMake(begin.origin.x,
-                            begin.origin.y + begin.size.height,
-                            end.origin.x - begin.origin.x,
-                            (end.origin.y - end.size.height) - begin.origin.y);
+    CGRect frame = CGRectMake(0.0f, begin.origin.y,
+                              self.superview.frame.size.width,
+                              (end.origin.y + end.size.height) - begin.origin.y);
+    if (fabs(begin.origin.y-end.origin.y) < 0.001) {
+        frame.origin.x = begin.origin.x;
+        frame.size.width = end.origin.x - begin.origin.x;
+    }
+    [self setFrame:frame];
+    
     begin = [self.superview convertRect:begin toView:self];
     end = [self.superview convertRect:end toView:self];
-    
     
     if (!_leftCaret) {
         UIView *view = [[UIView alloc] initWithFrame:begin];
         view.backgroundColor = [EGOTextView caretColor];
         [self addSubview:view];
-        _leftCaret=view;
+        _leftCaret = view;
     }
     
     if (!_leftDot) {
@@ -93,6 +97,26 @@
                                  CGRectGetMaxY(_rightCaret.frame),
                                  _rightDot.bounds.size.width,
                                  _rightDot.bounds.size.height);
+    [self setNeedsDisplay];
+}
+
+- (void)drawRect:(CGRect)rect {
+    CGMutablePathRef path = CGPathCreateMutable();
+        
+    if (fabs(_leftCaret.frame.origin.y-_rightCaret.frame.origin.y) < 0.001) {
+        CGPathAddRect(path, NULL, CGRectMake(_leftCaret.frame.origin.x, _leftCaret.frame.origin.y, _rightCaret.frame.origin.x - _leftCaret.frame.origin.x, _leftCaret.frame.size.height));
+    } else {
+        CGPathAddRect(path, NULL, CGRectMake(_leftCaret.frame.origin.x, _leftCaret.frame.origin.y, self.frame.size.width - _leftCaret.frame.origin.x, _leftCaret.frame.size.height));
+        CGPathAddRect(path, NULL, CGRectMake(0.0f, _leftCaret.frame.origin.y+_leftCaret.frame.size.height, self.frame.size.width, _rightCaret.frame.origin.y - (_leftCaret.frame.origin.y + _leftCaret.frame.size.height)));
+        CGPathAddRect(path, NULL, CGRectMake(0.0f, _rightCaret.frame.origin.y, _rightCaret.frame.origin.x, _rightCaret.frame.size.height));
+    }
+    
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(ctx, [[EGOTextView selectionColor] CGColor]);
+    CGContextAddPath(ctx, path);
+    CGContextFillPath(ctx);
+    
+    CGPathRelease(path);
 }
 
 @end

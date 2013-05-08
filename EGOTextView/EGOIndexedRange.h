@@ -25,11 +25,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface EGOIndexedRange : UITextRange {
-    NSRange _range;
-}
+@interface EGOIndexedRange : UITextRange
 
-@property (nonatomic) NSRange range;
+@property (nonatomic, assign) NSRange range;
 
 + (EGOIndexedRange *)rangeWithNSRange:(NSRange)range;
 
