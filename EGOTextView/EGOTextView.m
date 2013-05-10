@@ -714,44 +714,31 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     if (!markedText) {
         markedText = @"";
     }
-    
-    NSRange selectedNSRange = self.selectedRange;
-    NSRange markedTextRange = self.markedRange;
-    
-    if (markedTextRange.location != NSNotFound) {
-        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:markedTextRange]];
-        [attributedSubstring replaceCharactersInRange:NSMakeRange(0, markedTextRange.length) withString:markedText];
-        [self replaceString:[attributedSubstring copy] inRange:markedTextRange];
         
-        markedTextRange.length = markedText.length;
-    } else if (selectedNSRange.length > 0) {
-        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:selectedNSRange]];
-        [attributedSubstring replaceCharactersInRange:NSMakeRange(0, selectedNSRange.length) withString:markedText];
-        [self replaceString:[attributedSubstring copy] inRange:selectedNSRange];
+    if (self.markedRange.location != NSNotFound) {
+        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:self.markedRange]];
+        [attributedSubstring replaceCharactersInRange:NSMakeRange(0, self.markedRange.length) withString:markedText];
+        [self replaceString:[attributedSubstring copy] inRange:self.markedRange];
         
-        markedTextRange.location = selectedNSRange.location;
-        markedTextRange.length = markedText.length;
+        self.markedRange = NSMakeRange(self.markedRange.location, markedText.length);
+    } else if (self.selectedRange.length > 0) {
+        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:self.selectedRange]];
+        [attributedSubstring replaceCharactersInRange:NSMakeRange(0, self.selectedRange.length) withString:markedText];
+        [self replaceString:[attributedSubstring copy] inRange:self.selectedRange];
+        
+        self.markedRange = NSMakeRange(self.selectedRange.location, markedText.length);
     } else {
         NSAttributedString *string = [[NSAttributedString alloc] initWithString:markedText attributes:self.defaultAttributes];
-        [self insertString:string atIndex:selectedNSRange.location],
+        [self insertString:string atIndex:self.selectedRange.location],
         
-        markedTextRange.location = selectedNSRange.location;
-        markedTextRange.length = markedText.length;
+        self.markedRange = NSMakeRange(self.selectedRange.location, markedText.length);
     }
-    
-    selectedNSRange = NSMakeRange(selectedRange.location + markedTextRange.location, selectedRange.length);
-    
-    self.markedRange = markedTextRange;
-    self.selectedRange = selectedNSRange;
 }
 
 - (void)unmarkText {
-    NSRange markedTextRange = self.markedRange;
+    if (self.markedRange.location == NSNotFound) return;
     
-    if (markedTextRange.location == NSNotFound) return;
-    
-    markedTextRange.location = NSNotFound;
-    self.markedRange = markedTextRange;
+    self.markedRange = NSMakeRange(NSNotFound, 0);
 }
 
 #pragma mark - UITextInput - Computing Text Ranges and Text Positions
@@ -974,9 +961,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)insertText:(NSString *)text {
     if (!text || [text length] == 0) return;
     
-    NSRange selectedNSRange = self.selectedRange;
-    NSRange markedTextRange = self.markedRange;
-    
     NSMutableDictionary *attributes = nil;
     if (self.textLength > 0) {
         attributes = [[NSMutableDictionary alloc] initWithDictionary:self.typingAttributes];
@@ -988,39 +972,17 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     if (_correctionRange.location != NSNotFound && _correctionRange.length > 0){
         [self replaceString:newString inRange:self.correctionRange];
         
-        selectedNSRange.length = 0;
-        selectedNSRange.location = (self.correctionRange.location+text.length);
         self.correctionRange = NSMakeRange(NSNotFound, 0);
-    } else if (markedTextRange.location != NSNotFound) {
-        [self replaceString:newString inRange:markedTextRange];
+    } else if (self.markedRange.location != NSNotFound) {
+        [self replaceString:newString inRange:self.markedRange];
         
-        selectedNSRange.location = markedTextRange.location + text.length;
-        selectedNSRange.length = 0;
-        markedTextRange = NSMakeRange(NSNotFound, 0);
-    } else if (selectedNSRange.length > 0) {
-        [self replaceString:newString inRange:selectedNSRange];
-        
-        selectedNSRange.length = 0;
-        selectedNSRange.location = (selectedNSRange.location + text.length);
+        self.markedRange = NSMakeRange(NSNotFound, 0);
+    } else if (self.selectedRange.length > 0) {
+        [self replaceString:newString inRange:self.selectedRange];
     } else {
-        [self insertString:newString atIndex:selectedNSRange.location];
-        
-        selectedNSRange.location += text.length;
-        
-        if ([text length] == 1 && ![[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
-            NSRange range = [_textContentView characterRangeAtIndex:selectedNSRange.location];
-            @try {
-                [self removeCorrectionAttributesForRange:range];
-            }
-            @catch (NSException *exception) {
-                //NSLog(@"%@ %@", [exception description], NSStringFromRange(range));
-            }
-        }
+        [self insertString:newString atIndex:self.selectedRange.location];
     }
-    
-    self.markedRange = markedTextRange;
-    self.selectedRange = selectedNSRange;
-	
+    	
     if (text.length > 1 || [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text characterAtIndex:0]]) {
         [self checkLinksForRange:NSMakeRange(0, self.textLength)];
     }
@@ -1039,12 +1001,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 	
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(showCorrectionMenuWithoutSelection) object:nil];
     
-    NSRange selectedNSRange = self.selectedRange;
-    NSRange markedTextRange = self.markedRange;
-    
     NSString *text = self.text;
     
-    if (_correctionRange.location != NSNotFound && _correctionRange.length > 0) {
+    if (self.correctionRange.location != NSNotFound && self.correctionRange.length > 0) {
 		if ((_correctionRange.location == 0 || [whitespaceSet characterIsMember:[text characterAtIndex:_correctionRange.location-1]]) && (_correctionRange.location+_correctionRange.length >= text.length || [characterSet characterIsMember:[text characterAtIndex:_correctionRange.location+_correctionRange.length]])) {
 			_correctionRange.location = MAX(0, _correctionRange.location-1);
 			_correctionRange.length   = MIN(text.length, _correctionRange.length+1);
@@ -1052,40 +1011,27 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 		
 		[self deleteCharactersInRange:self.correctionRange];
         
-		selectedNSRange.location = self.correctionRange.location;
         self.correctionRange = NSMakeRange(NSNotFound, 0);
-        selectedNSRange.length = 0;
-    } else if (markedTextRange.location != NSNotFound) {
-		[self deleteCharactersInRange:selectedNSRange];
+    } else if (self.markedRange.location != NSNotFound) {
+		[self deleteCharactersInRange:self.markedRange];
         
-        selectedNSRange.location = markedTextRange.location;
-        selectedNSRange.length = 0;
-		markedTextRange = NSMakeRange(NSNotFound, 0);
-    } else if (selectedNSRange.length > 0 && selectedNSRange.location != NSNotFound) {
-		if ((selectedNSRange.location == 0 || [whitespaceSet characterIsMember:[text characterAtIndex:MIN(text.length, selectedNSRange.location-1)]]) &&
-			(selectedNSRange.location+selectedNSRange.length == text.length || [characterSet characterIsMember:[text characterAtIndex:selectedNSRange.location+selectedNSRange.length]])) {
-			selectedNSRange.location = (selectedNSRange.location == 0 ? 0 : selectedNSRange.location-1);
-			selectedNSRange.length   = MIN(text.length, selectedNSRange.length+1);
+        self.markedRange = NSMakeRange(NSNotFound, 0);
+    } else if (self.selectedRange.length > 0 && self.selectedRange.location != NSNotFound) {
+		if ((_selectedRange.location == 0 || [whitespaceSet characterIsMember:[text characterAtIndex:MIN(text.length, _selectedRange.location-1)]]) &&
+			(_selectedRange.location+_selectedRange.length == text.length || [characterSet characterIsMember:[text characterAtIndex:_selectedRange.location+_selectedRange.length]])) {
+			_selectedRange.location = (_selectedRange.location == 0 ? 0 : _selectedRange.location-1);
+			_selectedRange.length   = MIN(text.length, _selectedRange.length+1);
 		}
 		
-		[self deleteCharactersInRange:selectedNSRange];
-        
-        selectedNSRange.length = 0;
-    } else if (selectedNSRange.location > 0) {
-        NSInteger index = MAX(0, MIN(text.length, selectedNSRange.location)-1);
+		[self deleteCharactersInRange:_selectedRange];
+    } else if (self.selectedRange.location > 0) {
+        NSInteger index = MAX(0, MIN(text.length, self.selectedRange.location)-1);
         if ([whitespaceSet characterIsMember:[text characterAtIndex:index]]) {
             [self performSelector:@selector(showCorrectionMenuWithoutSelection) withObject:nil afterDelay:0.2f];
         }
-        
-        selectedNSRange = [text rangeOfComposedCharacterSequenceAtIndex:selectedNSRange.location - 1];
-		
-		[self deleteCharactersInRange:selectedNSRange];
-        
-        selectedNSRange.length = 0;
+        		
+		[self deleteCharactersInRange:[text rangeOfComposedCharacterSequenceAtIndex:self.selectedRange.location - 1]];
     }
-    
-    self.markedRange = markedTextRange;
-    self.selectedRange = selectedNSRange;
 }
 
 - (void)replaceString:(NSAttributedString *)text inRange:(NSRange)range {

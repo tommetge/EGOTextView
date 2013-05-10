@@ -444,7 +444,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
+
     return suggestedSize.height;
 }
 
@@ -516,7 +516,6 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
     return returnRange.location;
 }
 
@@ -552,7 +551,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
+
     return index;
 }
 
@@ -591,7 +590,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
+
     return returnRange;
 }
 
@@ -637,7 +636,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
+
     return returnRange;
 }
 
@@ -699,7 +698,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-    
+
     return returnRect;
 }
 
@@ -729,11 +728,11 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-	
+
     return CGRectIntegral(returnRect);
 }
 
-- (CGRect)lastRectForNSRange:(NSRange)range {	
+- (CGRect)lastRectForNSRange:(NSRange)range {
     __block CGRect returnRect = CGRectNull;
     
     dispatch_block_t block = ^{
@@ -759,7 +758,7 @@
     } else {
         dispatch_sync(self.drawQueue, block);
     }
-	
+
     return CGRectIntegral(returnRect);
 }
 
@@ -810,7 +809,7 @@
             }
         } break;
     }
-    
+
     return NSNotFound;
 }
 
