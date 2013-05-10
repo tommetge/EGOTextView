@@ -112,7 +112,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 @synthesize undoManager = _undoManager;
 @synthesize dataDetectorTypes;
 @synthesize autocapitalizationType;
-@synthesize spellCheckingType;
+@synthesize spellCheckingType = _spellCheckingType;
 @synthesize autocorrectionType = _autocorrectionType;
 @synthesize keyboardType;
 @synthesize keyboardAppearance;
@@ -138,7 +138,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
     [self setClipsToBounds:YES];
     [self setAutocorrectionType:UITextAutocorrectionTypeYes];
-    [self setSpellCheckingType:UITextSpellCheckingTypeDefault];
+    [self setSpellCheckingType:UITextSpellCheckingTypeYes];
     [self setAutocapitalizationType:UITextAutocapitalizationTypeSentences];
     [self setText:@""];
     	
@@ -400,15 +400,15 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     _editable = editable;
 }
 
-- (void)setAutocorrectionType:(UITextAutocorrectionType)autocorrectionType {
-	if (_autocorrectionType == UITextAutocorrectionTypeYes && autocorrectionType == UITextAutocorrectionTypeNo) {
+- (void)setSpellCheckingType:(UITextSpellCheckingType)spellCheckingType {
+    if (_spellCheckingType == UITextSpellCheckingTypeYes && spellCheckingType == UITextSpellCheckingTypeNo) {
         [self removeCorrectionAttributesForRange:NSMakeRange(0, _attributedString.length)];
 	}
 	
-	UITextAutocorrectionType oldAutocorrectionType = _autocorrectionType;
-	_autocorrectionType = autocorrectionType;
+	UITextSpellCheckingType oldSpellCheckingType = _spellCheckingType;
+	_spellCheckingType = spellCheckingType;
 	
-	if (oldAutocorrectionType == UITextAutocorrectionTypeNo && _autocorrectionType == UITextAutocorrectionTypeYes) {
+	if (oldSpellCheckingType == UITextSpellCheckingTypeNo && _spellCheckingType == UITextSpellCheckingTypeYes) {
 		[self checkSpelling];
 	}
 }
@@ -1368,7 +1368,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)checkSpellingForRange:(NSRange)range {
-    if (self.autocorrectionType == UITextAutocorrectionTypeNo || range.location == NSNotFound || range.length == 0 || range.length == NSNotFound) {
+    if (self.spellCheckingType == UITextSpellCheckingTypeNo || range.location == NSNotFound || range.length == 0 || range.length == NSNotFound) {
         return ;
     }
 
