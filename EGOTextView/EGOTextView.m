@@ -137,8 +137,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     [self setBackgroundColor:[UIColor whiteColor]];
     [self setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
     [self setClipsToBounds:YES];
-    [self setAutocorrectionType:UITextAutocorrectionTypeYes];
-    [self setSpellCheckingType:UITextSpellCheckingTypeYes];
     [self setAutocapitalizationType:UITextAutocapitalizationTypeSentences];
     [self setText:@""];
     	
@@ -1086,7 +1084,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         return;
     }
     
-    [self.inputDelegate textWillChange:self];
     dispatch_block_t block = ^{
         [[_undoManager prepareWithInvocationTarget:self] deleteCharactersInRange:NSMakeRange(loc, text.length)];
         [_attributedString insertAttributedString:text atIndex:loc];
@@ -1121,7 +1118,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         dispatch_barrier_sync(self.textQueue, block);
     }
     self.selectedRange = NSMakeRange(loc + text.length, 0);
-    [self.inputDelegate textDidChange:self];
     if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidChange:)]) {
         [self.delegate egoTextViewDidChange:self];
     }
