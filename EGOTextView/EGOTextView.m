@@ -129,6 +129,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     _undoManager = [[NSUndoManager alloc] init];
     _correctionRanges = [[NSMutableSet alloc] init];
+    _selectedRange = NSMakeRange(NSNotFound, 0);
     
     [self setAlwaysBounceVertical:YES];
     [self setEditable:YES];
@@ -253,17 +254,6 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
                                 (id)[UIColor blackColor].CGColor, (NSString *)kCTForegroundColorAttributeName, nil];
     self.defaultAttributes = dictionary;
     CFRelease(ctFont);
-    
-    if (dispatch_get_specific(self.textQueueSpecific)) {
-        [_textContentView drawText];
-    } else {
-        dispatch_sync(self.textQueue, ^{
-            [_textContentView drawText];
-        });
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [_textContentView setNeedsDisplay];
-    });
 }
 
 - (void)setText:(NSString *)text {
@@ -273,7 +263,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)setAttributedText:(NSAttributedString *)attributedText {	
 	[_undoManager removeAllActions];
-
+    
+    BOOL isEditing = (_editing && self.selectedRange.location != NSNotFound);
+    
 	if (self.searchRanges && [self.searchRanges count] > 0) {
 		self.searchRanges = nil;
 	}
@@ -281,7 +273,11 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [_correctionRanges removeAllObjects];
     });
     [self setAttributedString:[[NSMutableAttributedString alloc] initWithAttributedString:attributedText]];
-	[self checkSpelling];    
+	[self checkSpelling];
+    
+    if (isEditing) {
+        [self selectionChanged];
+    }
 }
 
 - (NSAttributedString *)attributedText {
@@ -357,10 +353,8 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [self scanAttachments];
     }
     
-    if (self.selectedRange.location > length) {
+    if (self.selectedRange.location == NSNotFound || self.selectedRange.location > length) {
         self.selectedRange = NSMakeRange(length, 0);
-    } else {
-        self.selectedRange = NSMakeRange(self.selectedRange.location, 0);
     }
     
     if ([[UIMenuController sharedMenuController] isMenuVisible]) {
@@ -467,7 +461,16 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     
     _ignoreSelectionMenu = NO;
     
-    if (self.selectedRange.length == 0) {
+    if (self.selectedRange.location == NSNotFound) {
+        if (_selectionView) {
+            [_selectionView removeFromSuperview];
+            _selectionView = nil;
+        }
+        
+        if (_caretView && _caretView.superview) {
+            [_caretView removeFromSuperview];
+        }
+    } else if (self.selectedRange.length == 0) {
         if (_selectionView) {
             [_selectionView removeFromSuperview];
             _selectionView = nil;
@@ -1724,7 +1727,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
             [self insertCorrectionAttributesForRange:self.correctionRange];
 			self.correctionRange = NSMakeRange(NSNotFound, 0);
 		}
-        self.selectedRange = NSMakeRange(0, 0);
+        self.selectedRange = NSMakeRange(NSNotFound, 0);
     }
     
     if (_typingAttributes) {
