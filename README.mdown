@@ -1,7 +1,7 @@
 # About EGOTextView
 EGOTextView is a complete drop in replacement for UITextView created by enormego, that adds support for Rich Text Editing.
 
-EGOTextView is tested to work with with iPhone OS 4.0 and newer.
+EGOTextView is tested to work with with iPhone OS 5.0 and newer.
 
 # Classes
 ## EGOTextView
