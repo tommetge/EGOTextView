@@ -54,10 +54,10 @@ static void AttachmentRunDelegateDealloc(void *refCon) {
 
 static CGSize AttachmentRunDelegateGetSize(void *refCon) {
     id <EGOTextAttachmentCell> cell = (__bridge id<EGOTextAttachmentCell>)(refCon);
-    if ([cell respondsToSelector: @selector(attachmentSize)]) {
-        return [cell attachmentSize];
+    if ([cell respondsToSelector:@selector(egoAttachmentSize)]) {
+        return [cell egoAttachmentSize];
     } else {
-        return [[cell attachmentView] frame].size;
+        return [[cell egoAttachmentView] frame].size;
     }
 }
 
@@ -460,7 +460,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 #pragma mark - Text Selection
 
 - (void)selectionChanged {
-    if (!_editing) {
+    if (!_editing && _caretView) {
         [_caretView removeFromSuperview];
     }
     
@@ -1723,20 +1723,29 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     if (_editable) {
         
         _editing = NO;
-		
-        if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidEndEditing:)]) {
-            [self.delegate egoTextViewDidEndEditing:self];
-        }
         
 		if (self.correctionRange.location != NSNotFound && self.correctionRange.length > 0) {
             [self insertCorrectionAttributesForRange:self.correctionRange];
 			self.correctionRange = NSMakeRange(NSNotFound, 0);
 		}
+        
         self.selectedRange = NSMakeRange(NSNotFound, 0);
+        
+        if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidEndEditing:)]) {
+            [self.delegate egoTextViewDidEndEditing:self];
+        }
     }
     
     if (_typingAttributes) {
         _typingAttributes = nil;
+    }
+    
+    if (_caretView) {
+        [_caretView removeFromSuperview];
+    }
+    
+    if (_selectionView) {
+        [_selectionView removeFromSuperview];
     }
     
     UIMenuController *menuController = [UIMenuController sharedMenuController];

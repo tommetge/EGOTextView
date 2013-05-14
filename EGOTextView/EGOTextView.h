@@ -108,10 +108,10 @@ extern NSString * const EGOTextViewLocalizationTable;
 @protocol EGOTextAttachmentCell <NSObject>
 @optional
 
-// the attachment must either implement -attachmentView or both -attachmentSize and -attachmentDrawInRect:
-- (UIView *)attachmentView;
+// the attachment must either implement -egoAttachmentView or both -egoAttachmentSize and -egoAttachmentDrawInRect:
+- (UIView *)egoAttachmentView;
 
-- (CGSize)attachmentSize;
-- (void)attachmentDrawInRect:(CGRect)r;
+- (CGSize)egoAttachmentSize;
+- (void)egoAttachmentDrawInRect:(CGRect)r;
 
 @end

@@ -190,21 +190,21 @@
         return;
     }
     
-    for (UIView *view in _textView.attachmentViews) {
-        [view removeFromSuperview];
+    for (UIView *attachmentView in [_textView attachmentViews]) {
+        [attachmentView removeFromSuperview];
     }
     [attributedString enumerateAttribute:EGOTextAttachmentAttributeName
                                  inRange:NSMakeRange(0, [attributedString length])
                                  options:0
                               usingBlock: ^(id value, NSRange range, BOOL *stop) {
-                                  if ([value respondsToSelector:@selector(attachmentView)]) {
-                                      UIView *view = [value attachmentView];
-                                      [_textView.attachmentViews addObject:view];
+                                  if ([value respondsToSelector:@selector(egoAttachmentView)]) {
+                                      UIView *attachmentView = [value egoAttachmentView];
+                                      [[_textView attachmentViews] addObject:attachmentView];
                                       
                                       CGRect rect = [self firstRectForNSRange:range];
-                                      rect.size = [view frame].size;
-                                      [view setFrame:rect];
-                                      [_textView addSubview:view];
+                                      rect.size = [attachmentView frame].size;
+                                      [attachmentView setFrame:rect];
+                                      [_textView addSubview:attachmentView];
                                   }
                               }];
 }
@@ -350,15 +350,15 @@
                 
                 CFDictionaryRef attributes = CTRunGetAttributes(run);
                 id <EGOTextAttachmentCell> attachmentCell = [(__bridge id)attributes objectForKey:EGOTextAttachmentAttributeName];
-                if (attachmentCell && [attachmentCell respondsToSelector: @selector(attachmentSize)] && [attachmentCell respondsToSelector: @selector(attachmentDrawInRect:)]) {
+                if (attachmentCell && [attachmentCell respondsToSelector:@selector(egoAttachmentSize)] && [attachmentCell respondsToSelector:@selector(egoAttachmentDrawInRect:)]) {
                     CGPoint position;
                     CTRunGetPositions(run, CFRangeMake(0, 1), &position);
                     
-                    CGSize size = [attachmentCell attachmentSize];
+                    CGSize size = [attachmentCell egoAttachmentSize];
                     CGRect theRect = { { line.origin.x + position.x, line.origin.y + position.y }, size };
                     
                     UIGraphicsPushContext(ctx);
-                    [attachmentCell attachmentDrawInRect:theRect];
+                    [attachmentCell egoAttachmentDrawInRect:theRect];
                     UIGraphicsPopContext();
                 }
             }
