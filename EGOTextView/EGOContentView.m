@@ -105,6 +105,7 @@
                 [self updateFrame];
                 [self layoutAttchmentsViews:attributedString];
                 dispatch_async(dispatch_get_main_queue(), ^{
+                    [_textView performSelector:@selector(selectionChanged)];
                     [self setNeedsDisplay];
                 });
             };
