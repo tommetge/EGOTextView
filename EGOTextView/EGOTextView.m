@@ -395,6 +395,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 - (void)setSpellCheckingType:(UITextSpellCheckingType)spellCheckingType {
     if (_spellCheckingType == UITextSpellCheckingTypeYes && spellCheckingType == UITextSpellCheckingTypeNo) {
         [self removeCorrectionAttributesForRange:NSMakeRange(0, _attributedString.length)];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [_textContentView setNeedsDisplay];
+        });
 	}
 	
 	UITextSpellCheckingType oldSpellCheckingType = _spellCheckingType;
@@ -1785,7 +1788,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)showCorrectionMenu {
-    if (_editing) {
+    if (_editing && self.spellCheckingType != UITextSpellCheckingTypeNo) {
         NSRange range = [_textContentView characterRangeAtIndex:self.selectedRange.location];
         if (range.location != NSNotFound && range.length > 1) {
 			NSString *language = [[NSLocale currentLocale] localeIdentifier];
@@ -1811,7 +1814,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)showCorrectionMenuForRange:(NSRange)range {
-    if (range.location == NSNotFound || range.length == 0) return;
+    if (range.location == NSNotFound || range.length == 0 || self.spellCheckingType == UITextSpellCheckingTypeNo) return;
     
     range.location = MAX(0, range.location);
     range.length = MIN(self.text.length, range.length);
