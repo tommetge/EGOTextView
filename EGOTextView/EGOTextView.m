@@ -1689,7 +1689,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 #pragma mark - UIResponder
 
 - (BOOL)canBecomeFirstResponder {
-    if (_editable && self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidBeginEditing:)]) {
+    if (_editable && self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewShouldBeginEditing:)]) {
         return [self.delegate egoTextViewShouldBeginEditing:self];
     }
     
@@ -1724,7 +1724,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         
         _editing = NO;
 		
-        if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewShouldEndEditing:)]) {
+        if (self.delegate && [self.delegate respondsToSelector:@selector(egoTextViewDidEndEditing:)]) {
             [self.delegate egoTextViewDidEndEditing:self];
         }
         
@@ -1744,7 +1744,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [menuController setMenuVisible:NO animated:YES];
     }
 	
-	return [super resignFirstResponder];
+    return [super resignFirstResponder];
 }
 
 #pragma mark - UIMenu Presentation
