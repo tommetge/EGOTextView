@@ -599,7 +599,7 @@
     __block NSRange returnRange = NSMakeRange(NSNotFound, 0);
     NSString *text = [_textView text];
     inIndex = MAX(0, MIN(inIndex, [text length] - 1));
-    
+
     if (inIndex == [text length] || [[NSCharacterSet newlineCharacterSet] characterIsMember:[text characterAtIndex:inIndex]]) {
         return NSMakeRange(inIndex, 0);
     }
@@ -609,8 +609,9 @@
             CFRange cfRange = CTLineGetStringRange(line.rawLine);
             NSRange range = NSMakeRange(cfRange.location == kCFNotFound ? NSNotFound : cfRange.location, cfRange.length == kCFNotFound ? 0 : cfRange.length);
             
-            if (inIndex >= range.location && inIndex <= range.location+range.length && range.length > 1) {
+            if (inIndex >= range.location && inIndex <= range.location+range.length) {
                 returnRange = range;
+                
                 @try {
                     [text enumerateSubstringsInRange:range
                                              options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
