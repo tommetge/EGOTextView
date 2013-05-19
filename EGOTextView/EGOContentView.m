@@ -533,13 +533,13 @@
 
     dispatch_block_t block = ^{
         for (EGOTextLine *line in _lines) {
-            if (point.y > line.origin.y) {
+            if (point.y > line.origin.y || line == [_lines lastObject]) {
                 CGPoint convertedPoint = CGPointMake(point.x - line.origin.x, point.y - line.origin.y);
                 index = CTLineGetStringIndexForPosition(line.rawLine, convertedPoint);
                 CFRange lineRange = CTLineGetStringRange(line.rawLine);
                 if (index == kCFNotFound) {
                     index = length;
-                } else if ((index == length && newlineTerminatedText) || index == lineRange.location + lineRange.length) {
+                } else if ((index == length && newlineTerminatedText) || (index != length && index == lineRange.location + lineRange.length)) {
                     index = index - 1;
                 }
                 break;
@@ -616,11 +616,8 @@
                     [text enumerateSubstringsInRange:range
                                              options:NSStringEnumerationByWords|NSStringEnumerationSubstringNotRequired
                                           usingBlock:^(NSString *subString, NSRange subStringRange, NSRange enclosingRange, BOOL *stop) {
-                                              if (NSLocationInRange(inIndex, subStringRange)) {
+                                              if (NSLocationInRange(inIndex, enclosingRange)) {
                                                   returnRange = subStringRange;
-                                                  *stop = YES;
-                                              } else if (NSLocationInRange(inIndex, enclosingRange)) {
-                                                  returnRange = enclosingRange;
                                                   *stop = YES;
                                               }
                                           }];

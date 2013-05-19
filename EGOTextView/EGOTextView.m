@@ -446,9 +446,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 
 - (void)keyboardDidShow:(NSNotification *)notification {
 	CGRect frame = _caretView.frame;
-	frame.origin.y += (self.font.lineHeight*2);
+	frame.size.height += (self.font.lineHeight*2);
 	if (!(_selectedRange.location == 0 && _selectedRange.length == 0)) {
-		[self scrollRectToVisible:[self convertRect:frame fromView:_caretView.superview] animated:YES];
+		[self scrollRectToVisible:frame animated:YES];
 	}
 }
 
@@ -489,9 +489,9 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         [_caretView delayBlink];
         
         CGRect frame = _caretView.frame;
-        frame.origin.y += (self.font.lineHeight*2);
+        frame.size.height += (self.font.lineHeight*2);
         if (!(_selectedRange.location == 0 && _selectedRange.length == 0)) {
-            [self scrollRectToVisible:[self convertRect:frame fromView:_caretView.superview] animated:YES];
+            [self scrollRectToVisible:frame animated:YES];
         }
         
         _longPress.minimumPressDuration = 0.5f;
@@ -715,22 +715,24 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     }
         
     if (self.markedRange.location != NSNotFound) {
-        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:self.markedRange]];
+        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[self.attributedString attributedSubstringFromRange:self.markedRange]];
         [attributedSubstring replaceCharactersInRange:NSMakeRange(0, self.markedRange.length) withString:markedText];
         [self replaceString:[attributedSubstring copy] inRange:self.markedRange];
         
         self.markedRange = NSMakeRange(self.markedRange.location, markedText.length);
     } else if (self.selectedRange.length > 0) {
-        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[_attributedString attributedSubstringFromRange:self.selectedRange]];
+        NSUInteger markedLocation = self.selectedRange.location;
+        NSMutableAttributedString *attributedSubstring = [[NSMutableAttributedString alloc] initWithAttributedString:[self.attributedString attributedSubstringFromRange:self.selectedRange]];
         [attributedSubstring replaceCharactersInRange:NSMakeRange(0, self.selectedRange.length) withString:markedText];
         [self replaceString:[attributedSubstring copy] inRange:self.selectedRange];
         
-        self.markedRange = NSMakeRange(self.selectedRange.location, markedText.length);
+        self.markedRange = NSMakeRange(markedLocation, markedText.length);
     } else {
+        NSUInteger markedLocation = self.selectedRange.location;
         NSAttributedString *string = [[NSAttributedString alloc] initWithString:markedText attributes:self.defaultAttributes];
-        [self insertString:string atIndex:self.selectedRange.location],
+        [self insertString:string atIndex:self.selectedRange.location];
         
-        self.markedRange = NSMakeRange(self.selectedRange.location, markedText.length);
+        self.markedRange = NSMakeRange(markedLocation, markedText.length);
     }
 }
 
@@ -1081,7 +1083,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
 }
 
 - (void)insertString:(NSAttributedString *)text atIndex:(NSUInteger)loc {
-    if (loc == NSNotFound || loc > self.textLength) {
+    if (loc == NSNotFound || loc > self.textLength || text.length == 0) {
         return;
     }
     
@@ -1098,7 +1100,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
                 }
             }
         });
-        if (text.length > 1 || [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text.string characterAtIndex:0]]) {
+        if (text.length > 1 || (text.length == 1 && [[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[text.string characterAtIndex:0]])) {
             if (text.length == 1) {
                 [self checkSpellingForRange:[_textContentView characterRangeAtIndex:loc-1]];
             } else {
@@ -1483,7 +1485,7 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
         CGPoint point = [gesture locationInView:self];
         BOOL _selection = (_selectionView != nil);
 		
-        if (!_selection && _caretView != nil) {
+        if (!_selection && _caretView) {
             [_caretView show];
         }
         
@@ -1570,8 +1572,10 @@ static CGFloat AttachmentRunDelegateGetWidth(void *refCon) {
     NSInteger index = [_textContentView closestWhiteSpaceIndexToPoint:[gesture locationInView:self] fromView:self];
     NSRange range = [_textContentView characterRangeAtIndex:index];
     if (range.location != NSNotFound && range.length > 0) {
-        
         [self.inputDelegate selectionWillChange:self];
+        if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[self.text characterAtIndex:range.location + range.length - 1]]) {
+            range.length -= 1;
+        }
         self.selectedRange = range;
         [self.inputDelegate selectionDidChange:self];
 		
