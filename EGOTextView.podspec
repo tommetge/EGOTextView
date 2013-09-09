@@ -20,5 +20,6 @@ Pod::Spec.new do |s|
   s.public_header_files = 'EGOTextView/**/*.h'
   s.resources = "EGOTextView/Resources/*.png"
   s.requires_arc = true
+  s.frameworks = 'CoreText', 'CoreGraphics', 'QuartzCore', 'MobileCoreServices'
 
 end
